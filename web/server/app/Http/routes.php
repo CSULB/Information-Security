@@ -15,8 +15,9 @@ $app->get('/', function () use ($app) {
     return $app->version();
 });
 
-$app->group(['prefix' => 'api/v1','namespace' => 'App\Http\Controllers'], function($app)
-{
+$app->group(['prefix' => 'api/v1'], function($app) {
     $app->post('users/login','UserController@login');
     $app->post('users/register','UserController@register');
+    $app->post('users/verify','UserController@verify');
+    $app->post('keys/dh','KeyController@diffie');
 });

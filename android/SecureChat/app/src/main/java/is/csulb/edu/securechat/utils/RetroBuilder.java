@@ -10,12 +10,13 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetroBuilder {
 
-    private static final String API_BASE_URL = " http://18223ba8.ngrok.io/Information-Security/web/server/public/api/v1/";
+    private static final String API_BASE_URL = "http://a33d73fb.ngrok.io/Information-Security/web/server/public/api/v1/";
 
-    public static <S>S buildOn(Class<S> serviceClass) {
+    public static <S> S buildOn(Class<S> serviceClass) {
 
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
         httpClient.addInterceptor(logging);
 
