@@ -11,7 +11,8 @@
         "tymon/jwt-auth": "0.5.*",
         "laravelista/lumen-vendor-publish": "^2.0",
         "irazasyed/larasupport": "~1.0",
-        "irazasyed/jwt-auth-guard": "^1.0"
+        "irazasyed/jwt-auth-guard": "^1.0",
+        "paragonie/random_compat": "^2.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
