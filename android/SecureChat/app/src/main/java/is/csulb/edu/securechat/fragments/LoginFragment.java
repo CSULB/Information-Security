@@ -17,10 +17,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+
 import is.csulb.edu.securechat.R;
 import is.csulb.edu.securechat.pojos.User;
 import is.csulb.edu.securechat.rest.ChatServer;
+import is.csulb.edu.securechat.utils.Functions;
 import is.csulb.edu.securechat.utils.RetroBuilder;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -88,27 +92,38 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.button_login:
-                String email = editTextPhone.getText().toString();
-                String password = editTextPassword.getText().toString();
+                final String phone = editTextPhone.getText().toString();
+                final String password = editTextPassword.getText().toString();
 
                 User user = new User();
-                user.phone = email;
-                user.password = password;
+                user.phone = phone;
 
-                Call<User> call = RetroBuilder.buildOn(ChatServer.class).remoteLogin(user);
-                call.enqueue(new Callback<User>() {
+                Call<ResponseBody> call = RetroBuilder.buildOn(ChatServer.class).remoteLogin(user, 1);
+                call.enqueue(new Callback<ResponseBody>() {
 
                     @Override
-                    public void onResponse(Call<User> call, Response<User> response) {
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                         if (response.isSuccessful()) {
-                            System.out.println("Working");
+                            try {
+                                JSONObject json = new JSONObject(response.body().string());
+                                if (json.has("error")) {
+                                    Toast.makeText(getContext(), json.getString("error"), Toast.LENGTH_LONG).show();
+                                } else {
+                                    String saltedPasswordHash = Functions.hash("SHA-512", password, json.getString("salt"));
+                                    String challengeResponse = Functions.HMAC("HmacSHA512", saltedPasswordHash, json.getString("challenge"));
+
+                                    replyToChallenge(phone, challengeResponse);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         } else {
                             System.out.println("Minor lafda");
                         }
                     }
 
                     @Override
-                    public void onFailure(Call<User> call, Throwable t) {
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
                         Toast.makeText(getContext(), "Error: " + t.getMessage() + ". Please try again", Toast.LENGTH_LONG).show();
                     }
                 });
@@ -123,6 +138,41 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
             default:
                 break;
         }
+    }
+
+    private void replyToChallenge(String phone, String challengeResponse) {
+
+        User user = new User();
+        user.phone = phone;
+        user.challenge_response = challengeResponse;
+
+        Call<ResponseBody> call = RetroBuilder.buildOn(ChatServer.class).remoteLogin(user, 2);
+        call.enqueue(new Callback<ResponseBody>() {
+
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        JSONObject json = new JSONObject(response.body().string());
+                        if (json.has("error")) {
+                            Toast.makeText(getContext(), json.getString("error"), Toast.LENGTH_LONG).show();
+                        } else {
+                            // Got JWT! Store and use.
+                            System.out.println("JWT!" + response.body().string());
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    Toast.makeText(getContext(), "Error. Please try again.", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Toast.makeText(getContext(), "Error: " + t.getMessage() + ". Please try again", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     /*
@@ -162,4 +212,5 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
             // permissions this app might request
         }
     }
+
 }
