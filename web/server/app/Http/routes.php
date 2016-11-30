@@ -19,5 +19,6 @@ $app->group(['prefix' => 'api/v1'], function($app) {
     $app->post('users/login/{step}','UserController@login');
     $app->post('users/register','UserController@register');
     $app->post('users/verify','UserController@verify');
+    $app->get('users/test', ['middleware' => 'auth:api', 'uses' => 'UserController@sendSMS']);
     $app->post('keys/dh','KeyController@diffie');
 });
