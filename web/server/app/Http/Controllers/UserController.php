@@ -1,23 +1,86 @@
 <?php
-  
+
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\User;
+use App\Models\Challenge;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-  
+
 class UserController extends Controller{
 
 	/*
-	 * Source: http://www.passwordrandom.com/most-popular-passwords
+	0 = No such user
 	*/
-	private $commonPasswords = ["password", "123456", "12345678", "1234", "qwerty", "12345", "dragon", "pussy", "baseball", "football", "letmein", "monkey", "696969", "abc123", "mustang", "michael", "shadow", "master", "jennifer", "111111", "2000", "jordan", "superman", "harley", "1234567", "fuckme", "hunter", "fuckyou", "trustno1", "ranger", "buster", "thomas", "tigger", "robert", "soccer", "fuck", "batman", "test", "pass", "killer", "hockey", "george", "charlie", "andrew", "michelle", "love", "sunshine", "jessica", "asshole", "6969", "pepper", "daniel", "access", "123456789", "654321", "joshua", "maggie", "starwars", "silver", "william", "dallas", "yankees", "123123", "ashley", "666666", "hello", "amanda", "orange", "biteme", "freedom", "computer", "sexy", "thunder", "nicole", "ginger", "heather", "hammer", "summer", "corvette", "taylor", "fucker", "austin", "1111", "merlin", "matthew", "121212", "golfer", "cheese", "princess", "martin", "chelsea", "patrick", "richard", "diamond", "yellow", "bigdog", "secret", "asdfgh", "sparky", "cowboy"];
+	public function login(Request $request, $step) {
 
-	public function login(Request $request) {
-		// $user = User::create($request->all());
-		// $user->save();
-		// return response()->json($user);
+		if($step == 1) {
+			$parameters = $request->all();
+
+			$rules1 = [
+			        'phone' => 'required|numeric|digits_between:12,12'
+			    ];
+			$validator1 = Validator::make($parameters, $rules1);
+			if($validator1->fails()) {
+				$errors = ['error' => 'Missing parameters', 'code' => '0'];
+        return response()->json($errors);
+			} else {
+				$user = User::where('phone', $parameters['phone'])->first();
+				if(empty($user)) {
+					$errors = ['error' => 'Invalid Phone', 'code' => '0'];
+					return response()->json($errors);
+				} else {
+					$challengeEntry = Challenge::firstOrCreate(['phone' => $parameters['phone']]);
+					$challengeEntry->challenge = bin2hex(random_bytes(32));
+					$challengeEntry->save();
+
+					$response = ['challenge' => $challengeEntry->challenge, 'salt' => $user->salt];
+					return response()->json($response);
+				}
+			}
+		} elseif ($step == 2) {
+			$parameters = $request->all();
+
+			$rules2 = [
+			        'phone' => 'required',
+			        'challenge_response' => 'required'
+			    ];
+			$validator1 = Validator::make($parameters, $rules2);
+
+			if($validator1->fails()) {
+				$errors = ['error' => 'Missing parameters', 'code' => '0'];
+				return response()->json($errors);
+			} else {
+				$user = User::where('phone', $parameters['phone'])->first();
+				$challengeEntry = Challenge::where('phone', $parameters['phone'])->first();
+
+				$differenceInMinutes = Carbon::now()->diffInMinutes($challengeEntry->created_at);
+
+				if($differenceInMinutes > 5) {
+					$challengeEntry->delete();
+				}
+
+				if($differenceInMinutes > 5 || empty($user) || empty($challengeEntry)) {
+					$errors = ['error' => 'Invalid', 'code' => '0'];
+					return response()->json($errors);
+				} else {
+					$challenge_response = $parameters['challenge_response'];
+
+					$localChallenge = hash_hmac('sha512', $user->password_hash, $challengeEntry->challenge);
+
+					if(strcmp($challenge_response, $localChallenge) === 0) {
+						// Match! Return JWT.
+						$challengeEntry->delete();
+						// echo 'JWT';
+					} else {
+						$errors = ['error' => 'Invalid', 'code' => '0'];
+						return response()->json($errors);
+					}
+				}
+			}
+		}
 	}
 
 	/*
@@ -45,7 +108,7 @@ class UserController extends Controller{
 			$errors = ['error' => 'validation_failed', 'code' => '0'];
 
 			foreach ((array)$validator1->errors()->messages() as $key => $value) {
-				$errors['fields'][] = $key;	
+				$errors['fields'][] = $key;
 			}
 			return response()->json($errors);
 		} else {
@@ -111,7 +174,7 @@ class UserController extends Controller{
 		    					return response()->json($user);
 		    				} else {
 		    					$errors = ['error' => 'Couldn\'t connect to SMS server', 'code' => '4'];
-		    					return response()->json($errors);		    					
+		    					return response()->json($errors);
 		    				}
 		    			}
 		    		}
@@ -125,14 +188,15 @@ class UserController extends Controller{
 	}
 
 	/*
-	5 = Couldn't verify. User absent or wrong code.
+	4 = Couldn't verify. User absent or wrong code.
+	5 = User doesn't exist.
 	*/
 	public function verify(Request $request) {
 
 		$parameters = $request->all()['nameValuePairs'];
 
 		$user = User::find($parameters['user_id']);
-		if($user != null) {
+		if(empty($user)) {
 			if(strcmp($user->verification_code, $parameters['code']) == 0) {
 				// Code is verified. Login the user.
 				$user->verification_code = '';
