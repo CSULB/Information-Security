@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use JWTAuth;
+
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Challenge;
@@ -9,7 +11,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class UserController extends Controller{
+class UserController extends Controller {
 
 	/*
 	0 = No such user
@@ -36,7 +38,9 @@ class UserController extends Controller{
 					$challengeEntry->challenge = bin2hex(random_bytes(32));
 					$challengeEntry->save();
 
-					$response = ['challenge' => $challengeEntry->challenge, 'salt' => $user->salt];
+					$localChallenge = hash_hmac('sha512', $user->password_hash, $challengeEntry->challenge);
+
+					$response = ['challenge' => $localChallenge, 'salt' => $user->salt];
 					return response()->json($response);
 				}
 			}
@@ -56,13 +60,12 @@ class UserController extends Controller{
 				$user = User::where('phone', $parameters['phone'])->first();
 				$challengeEntry = Challenge::where('phone', $parameters['phone'])->first();
 
-				$differenceInMinutes = Carbon::now()->diffInMinutes($challengeEntry->created_at);
+				// $differenceInMinutes = Carbon::now()->diffInMinutes($challengeEntry->created_at);
 
-				if($differenceInMinutes > 5) {
-					$challengeEntry->delete();
-				}
-
-				if($differenceInMinutes > 5 || empty($user) || empty($challengeEntry)) {
+				// if($differenceInMinutes > 5) {
+					// $challengeEntry->delete();
+				// }
+				if(empty($user) || empty($challengeEntry)) {
 					$errors = ['error' => 'Invalid', 'code' => '0'];
 					return response()->json($errors);
 				} else {
@@ -73,7 +76,8 @@ class UserController extends Controller{
 					if(strcmp($challenge_response, $localChallenge) === 0) {
 						// Match! Return JWT.
 						$challengeEntry->delete();
-						// echo 'JWT';
+						$token = JWTAuth::fromUser($user);
+						return response()->json(compact('token'));
 					} else {
 						$errors = ['error' => 'Invalid', 'code' => '0'];
 						return response()->json($errors);
@@ -183,8 +187,14 @@ class UserController extends Controller{
 		}
 	}
 
-	public function sendSMS($code, $phone) {
-		return true;
+	public function sendSMS(Request $request) {
+// 		// this will set the token on the object
+JWTAuth::parseToken();
+//
+// // and you can continue to chain methods
+$user = JWTAuth::parseToken()->authenticate();
+return $user;
+		// return "true";
 	}
 
 	/*
