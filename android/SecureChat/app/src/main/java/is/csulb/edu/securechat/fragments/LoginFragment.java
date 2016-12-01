@@ -17,7 +17,15 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.mobsandgeeks.saripaar.ValidationError;
+import com.mobsandgeeks.saripaar.Validator;
+import com.mobsandgeeks.saripaar.annotation.DecimalMin;
+import com.mobsandgeeks.saripaar.annotation.NotEmpty;
+import com.mobsandgeeks.saripaar.annotation.Password;
+
 import org.json.JSONObject;
+
+import java.util.List;
 
 import is.csulb.edu.securechat.R;
 import is.csulb.edu.securechat.pojos.User;
@@ -29,14 +37,25 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class LoginFragment extends Fragment implements View.OnClickListener {
+/*
+* Using https://github.com/ragunathjawahar/android-saripaar for form validation.
+*/
+public class LoginFragment extends Fragment implements View.OnClickListener, Validator.ValidationListener {
 
     private static final int MY_PERMISSIONS_REQUEST_READ_PHONE_STATE = 999;
 
-    private EditText editTextPhone, editTextPassword;
+    @NotEmpty
+    @DecimalMin(12)
+    private EditText editTextPhone;
+
+    @Password(min = 8, scheme = Password.Scheme.ALPHA_NUMERIC_MIXED_CASE_SYMBOLS)
+    private EditText editTextPassword;
+
     private Button loginButton, registerButton;
 
     private String userId;
+
+    private Validator validator;
 
     @Nullable
     @Override
@@ -56,6 +75,10 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
             editTextPhone.setText(bundle.getString("phone"));
             userId = bundle.getString("id");
         }
+
+        validator = new Validator(this);
+        validator.setValidationListener(this);
+
 
         /*
         * Credits to https://developer.android.com/training/permissions/requesting.html
@@ -92,41 +115,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.button_login:
-                final String phone = editTextPhone.getText().toString();
-                final String password = editTextPassword.getText().toString();
-
-                User user = new User();
-                user.phone = phone;
-
-                Call<ResponseBody> call = RetroBuilder.buildOn(ChatServer.class).remoteLogin(user, 1);
-                call.enqueue(new Callback<ResponseBody>() {
-
-                    @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                        if (response.isSuccessful()) {
-                            try {
-                                JSONObject json = new JSONObject(response.body().string());
-                                if (json.has("error")) {
-                                    Toast.makeText(getContext(), json.getString("error"), Toast.LENGTH_LONG).show();
-                                } else {
-                                    String saltedPasswordHash = Functions.hash("SHA-512", password, json.getString("salt"));
-                                    String challengeResponse = Functions.HMAC("HmacSHA512", saltedPasswordHash, json.getString("challenge"));
-
-                                    replyToChallenge(phone, challengeResponse);
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            System.out.println("Minor lafda");
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<ResponseBody> call, Throwable t) {
-                        Toast.makeText(getContext(), "Error: " + t.getMessage() + ". Please try again", Toast.LENGTH_LONG).show();
-                    }
-                });
+                validator.validate();
                 break;
             case R.id.button_register:
                 RegisterFragment fragment = new RegisterFragment();
@@ -213,4 +202,55 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    @Override
+    public void onValidationSucceeded() {
+        final String phone = editTextPhone.getText().toString();
+        final String password = editTextPassword.getText().toString();
+
+        User user = new User();
+        user.phone = phone;
+
+        Call<ResponseBody> call = RetroBuilder.buildOn(ChatServer.class).remoteLogin(user, 1);
+        call.enqueue(new Callback<ResponseBody>() {
+
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        JSONObject json = new JSONObject(response.body().string());
+                        if (json.has("error")) {
+                            Toast.makeText(getContext(), json.getString("error"), Toast.LENGTH_LONG).show();
+                        } else {
+                            String saltedPasswordHash = Functions.hash("SHA-512", password, json.getString("salt"));
+                            String challengeResponse = Functions.HMAC("HmacSHA512", saltedPasswordHash, json.getString("challenge"));
+
+                            replyToChallenge(phone, challengeResponse);
+                        }
+                    } catch (Exception e) {
+                        Toast.makeText(getContext(), "Error. Please try again", Toast.LENGTH_LONG).show();
+                        e.printStackTrace();
+                    }
+                } else {
+                    Toast.makeText(getContext(), "Error. Please try again", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Toast.makeText(getContext(), "Error: " + t.getMessage() + ". Please try again", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    @Override
+    public void onValidationFailed(List<ValidationError> errors) {
+        for (ValidationError error : errors) {
+            if (error.getView() == editTextPassword) {
+                editTextPassword.setError("Please select a stronger password");
+                editTextPassword.getText().clear();
+            } else if (error.getView() == editTextPhone) {
+                editTextPhone.setError("Missing or invalid phone number");
+            }
+        }
+    }
 }

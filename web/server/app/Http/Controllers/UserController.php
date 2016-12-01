@@ -1,5 +1,5 @@
 <?php
-  
+
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
@@ -8,7 +8,7 @@ use App\Models\Challenge;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-  
+
 class UserController extends Controller{
 
 	/*
@@ -20,12 +20,12 @@ class UserController extends Controller{
 			$parameters = $request->all();
 
 			$rules1 = [
-			        'phone' => 'required'
+			        'phone' => 'required|numeric|digits_between:12,12'
 			    ];
 			$validator1 = Validator::make($parameters, $rules1);
-
 			if($validator1->fails()) {
 				$errors = ['error' => 'Missing parameters', 'code' => '0'];
+        return response()->json($errors);
 			} else {
 				$user = User::where('phone', $parameters['phone'])->first();
 				if(empty($user)) {
@@ -69,18 +69,17 @@ class UserController extends Controller{
 					$challenge_response = $parameters['challenge_response'];
 
 					$localChallenge = hash_hmac('sha512', $user->password_hash, $challengeEntry->challenge);
-					
+
 					if(strcmp($challenge_response, $localChallenge) === 0) {
 						// Match! Return JWT.
 						$challengeEntry->delete();
 						// echo 'JWT';
 					} else {
-						// echo 1;
 						$errors = ['error' => 'Invalid', 'code' => '0'];
 						return response()->json($errors);
 					}
 				}
-			}	
+			}
 		}
 	}
 
@@ -109,7 +108,7 @@ class UserController extends Controller{
 			$errors = ['error' => 'validation_failed', 'code' => '0'];
 
 			foreach ((array)$validator1->errors()->messages() as $key => $value) {
-				$errors['fields'][] = $key;	
+				$errors['fields'][] = $key;
 			}
 			return response()->json($errors);
 		} else {
@@ -175,7 +174,7 @@ class UserController extends Controller{
 		    					return response()->json($user);
 		    				} else {
 		    					$errors = ['error' => 'Couldn\'t connect to SMS server', 'code' => '4'];
-		    					return response()->json($errors);		    					
+		    					return response()->json($errors);
 		    				}
 		    			}
 		    		}

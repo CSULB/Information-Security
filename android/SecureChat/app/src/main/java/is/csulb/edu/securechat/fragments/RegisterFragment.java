@@ -34,6 +34,7 @@ import retrofit2.Response;
 
 /*
 * Using https://developer.android.com/training/permissions/requesting.html for runtime app permissions.
+* Using https://github.com/ragunathjawahar/android-saripaar for form validation.
 * */
 public class RegisterFragment extends Fragment implements Validator.ValidationListener, View.OnClickListener {
 
@@ -189,10 +190,10 @@ public class RegisterFragment extends Fragment implements Validator.ValidationLi
                 ((EditText) error.getView()).setError(error.getCollatedErrorMessage(getContext()));
             } else {
                 password.setError("Please select a stronger password");
+                password.getText().clear();
             }
         }
     }
-
 
     @Override
     public void onClick(View view) {
