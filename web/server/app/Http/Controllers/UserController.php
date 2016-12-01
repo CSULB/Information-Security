@@ -188,10 +188,10 @@ class UserController extends Controller {
 	}
 
 	public function sendSMS(Request $request) {
-// 		// this will set the token on the object
+// // 		// this will set the token on the object
 JWTAuth::parseToken();
-//
-// // and you can continue to chain methods
+// //
+// // // and you can continue to chain methods
 $user = JWTAuth::parseToken()->authenticate();
 return $user;
 		// return "true";
