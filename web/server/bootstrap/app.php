@@ -80,7 +80,7 @@ $app->singleton(
 
 // $app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
-$app->register('Tymon\JWTAuth\Providers\JWTAuthServiceProvider');
+$app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 $app->register(Irazasyed\JwtAuthGuard\JwtAuthGuardServiceProvider::class);
 class_alias('Tymon\JWTAuth\Facades\JWTAuth', 'JWTAuth');
 class_alias('Tymon\JWTAuth\Facades\JWTFactory', 'JWTFactory');
