@@ -1,8 +1,9 @@
-package com.gaurav.securechat.rest;
+package com.gauravbhor.securechat.rest;
 
-import com.gaurav.securechat.pojos.User;
+import com.gauravbhor.securechat.pojos.User;
 
 import org.json.JSONObject;
+
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;

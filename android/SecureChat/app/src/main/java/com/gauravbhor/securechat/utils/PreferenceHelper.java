@@ -1,4 +1,4 @@
-package com.gaurav.securechat.utils;
+package com.gauravbhor.securechat.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;

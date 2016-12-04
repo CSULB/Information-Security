@@ -1,4 +1,4 @@
-package com.gaurav.securechat.fragments;
+package com.gauravbhor.securechat.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -10,15 +10,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.gaurav.securechat.R;
-import com.gaurav.securechat.rest.ChatServer;
-import com.gaurav.securechat.utils.RetroBuilder;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 
+import com.gauravbhor.securechat.R;
+import com.gauravbhor.securechat.rest.ChatServer;
+import com.gauravbhor.securechat.utils.RetroBuilder;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;

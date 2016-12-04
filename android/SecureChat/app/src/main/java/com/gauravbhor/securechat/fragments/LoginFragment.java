@@ -1,4 +1,4 @@
-package com.gaurav.securechat.fragments;
+package com.gauravbhor.securechat.fragments;
 
 import android.Manifest;
 import android.content.Context;
@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,11 +18,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.gaurav.securechat.R;
-import com.gaurav.securechat.pojos.User;
-import com.gaurav.securechat.rest.ChatServer;
-import com.gaurav.securechat.utils.Functions;
-import com.gaurav.securechat.utils.RetroBuilder;
+import com.gauravbhor.securechat.R;
+import com.gauravbhor.securechat.pojos.User;
+import com.gauravbhor.securechat.rest.ChatServer;
+import com.gauravbhor.securechat.utils.Functions;
+import com.gauravbhor.securechat.utils.RetroBuilder;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
 import com.mobsandgeeks.saripaar.annotation.DecimalMin;
@@ -74,15 +75,17 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
         loginButton.setOnClickListener(this);
         registerButton.setOnClickListener(this);
 
+        byte[] seed = new Random().randomBytes(SodiumConstants.SECRETKEY_BYTES);
+        KeyPair pair = new KeyPair(seed);
+
+        System.out.println("PR: " + pair.getPrivateKey());
+
         Bundle bundle = getArguments();
         if (bundle != null) {
             editTextPhone.setText(bundle.getString("phone"));
             userId = bundle.getString("id");
         }
-        Sodium.sodium_init();
-        byte[] seed = new Random().randomBytes(SodiumConstants.SECRETKEY_BYTES);
-        KeyPair key = new KeyPair(seed);
-        System.out.println(key.getPrivateKey());
+
         validator = new Validator(this);
         validator.setValidationListener(this);
 

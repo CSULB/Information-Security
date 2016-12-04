@@ -1,4 +1,5 @@
-package com.gaurav.securechat.pojos;
+package com.gauravbhor.securechat.pojos;
+
 
 public class User {
 
