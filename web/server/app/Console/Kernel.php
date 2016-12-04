@@ -16,6 +16,11 @@ class Kernel extends ConsoleKernel
         \Laravelista\LumenVendorPublish\VendorPublishCommand::class
     ];
 
+    protected $routeMiddleware = [
+      'jwt.auth' => 'Tymon\JWTAuth\Middleware\GetUserFromToken',
+      'jwt.refresh' => 'Tymon\JWTAuth\Middleware\RefreshToken',
+    ];
+
     /**
      * Define the application's command schedule.
      *
