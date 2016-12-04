@@ -6,6 +6,7 @@ use JWTAuth;
 
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\Message;
 use App\Models\Challenge;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -189,6 +190,7 @@ class UserController extends Controller {
 		}
 	}
 
+	// Contact sms server
 	public function sendSMS($code, $phone) {
 		return true;
 		// $formParams = [
@@ -238,18 +240,46 @@ class UserController extends Controller {
 		}
 	}
 
+	// Get user data for friend's list
 	public function getUser(Request $request, $id) {
-		JWTAuth::parseToken();
-		$user = JWTAuth::parseToken()->authenticate();
+		JWTAuth::parseToken()->authenticate();
 		$user = User::find($id);
 		// echo $id; exit;
 		if(empty($user)) {
-			$errors = ['error' => 'Invalid', 'code' => '0'];
+			$errors = ['error' => 'Invalid ID', 'code' => '0'];
 			return response()->json($errors);
 		} else {
 			return response()->json($user);
 		}
 	}
+
+	// Send message to user with ID = $id
+	public function sendMessage(Request $request, $id) {
+		JWTAuth::parseToken()->authenticate();
+		$user = User::find($id);
+		if(empty($user)) {
+			$errors = ['error' => 'Invalid ID', 'code' => '0'];
+			return response()->json($errors);
+		} else {
+			if($user->is_verified == true) {
+				if($request->has('message')) {
+					$message = new Message();
+					$message->to = $id;
+					$message->message = $request->input('message');
+					$message->save();
+					return response()->json($message);
+				} else {
+					$errors = ['error' => 'Missing Parameters', 'code' => '0'];
+					return response()->json($errors);
+				}
+			} else {
+				$errors = ['error' => 'Invalid User ID', 'code' => '0'];
+				return response()->json($errors);
+			}
+		}
+	}
+
+
 }
 
 ?>
