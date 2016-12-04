@@ -19,6 +19,6 @@ $app->group(['prefix' => 'api/v1'], function($app) {
     $app->post('users/login/{step}','UserController@login');
     $app->post('users/register','UserController@register');
     $app->post('users/verify','UserController@verify');
-    $app->get('users/test', 'UserController@sendSMS');
+    $app->get('users/{id}', 'UserController@getUser');
     $app->post('keys/dh','KeyController@diffie');
 });

@@ -11,6 +11,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
+use GuzzleHttp\Client;
+
 class UserController extends Controller {
 
 	/*
@@ -158,7 +160,7 @@ class UserController extends Controller {
 		    				$errors = ['error' => 'validation_failed', 'code' => '3'];
 		    				return response()->json($errors);
 		    			} else {
-
+							// print_r($parameters); exit;
 		    				// All OKAY. Send SMS.
 		    				$code = random_int(100000, 999999);
 		    				if($this->sendSMS($code, $parameters['phone'])) {
@@ -187,14 +189,26 @@ class UserController extends Controller {
 		}
 	}
 
-	public function sendSMS(Request $request) {
-// // 		// this will set the token on the object
-JWTAuth::parseToken();
-// //
-// // // and you can continue to chain methods
-$user = JWTAuth::parseToken()->authenticate();
-return $user;
-		// return "true";
+	public function sendSMS($code, $phone) {
+		return true;
+		// $formParams = [
+		// 	'version' => '2.0',
+		// 	'userid' => 'gauravbhor',
+		// 	'vasid' => '10188',
+		// 	'password' => 'Gaurav123',
+		// 	'from' => '27126',
+		// 	'to' => substr($phone, 2),
+		// 	'text' => 'Use this code for verification in SecureChat '.$code
+		// ];
+		//
+		// $client = new Client();
+		// $request = $client->request('POST', 'http://smsapi.wire2air.com/smsadmin/submitsm.aspx', ['form_params' => $formParams]);
+		//
+		// if($request->getStatusCode() != 200) {
+		// 	return false;
+		// } else {
+		// 	return true;
+		// }
 	}
 
 	/*
@@ -221,6 +235,19 @@ return $user;
 		} else {
 			$errors = ['error' => 'Couldn\'t verify', 'code' => '6'];
 		    					return response()->json($errors);
+		}
+	}
+
+	public function getUser(Request $request, $id) {
+		JWTAuth::parseToken();
+		$user = JWTAuth::parseToken()->authenticate();
+		$user = User::find($id);
+		// echo $id; exit;
+		if(empty($user)) {
+			$errors = ['error' => 'Invalid', 'code' => '0'];
+			return response()->json($errors);
+		} else {
+			return response()->json($user);
 		}
 	}
 }
