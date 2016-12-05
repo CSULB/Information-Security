@@ -240,6 +240,10 @@ class UserController extends Controller {
 				$user->verification_code = '';
 				$user->is_verified = true;
 				$user->save();
+
+				$token = JWTAuth::fromUser($user);
+				$user->token = compact('token')['token'];
+
 				return response()->json($user);
 			} else {
 				// Invalid verification code.
@@ -252,10 +256,10 @@ class UserController extends Controller {
 	// Get user data for friend's list
 	public function getUser(Request $request, $id) {
 		// JWTAuth::parseToken()->authenticate();
-
+		$parameters = $request->all();
 		// Sender should exist and be verified
-		if($request->has('sender_id')) {
-			$sender = User::find($request->input('sender_id'));
+		if($parameters['nameValuePairs']['sender_id']) {
+			$sender = User::find($parameters['nameValuePairs']['sender_id']);
 			if(empty($sender) || $sender->is_verified == false) {
 				$errors = ['error' => 'Invalid ID', 'code' => '0'];
 				return response()->json($errors);
@@ -280,9 +284,10 @@ class UserController extends Controller {
 	public function sendMessage(Request $request, $id) {
 		// JWTAuth::parseToken()->authenticate();
 
+		$parameters = $request->all()['nameValuePairs'];
 		// Sender should exist and be verified
-		if($request->has('sender_id')) {
-			$sender = User::find($request->input('sender_id'));
+		if(array_has($parameters, 'sender_id') && array_has($parameters, 'message') && strlen(trim($parameters['message'])) > 0) {
+			$sender = User::find($parameters['sender_id']);
 			if(empty($sender) || $sender->is_verified == false) {
 				$errors = ['error' => 'Invalid ID', 'code' => '0'];
 				return response()->json($errors);
@@ -293,17 +298,12 @@ class UserController extends Controller {
 					$errors = ['error' => 'Invalid ID', 'code' => '0'];
 					return response()->json($errors);
 				} else {
-					if($user->is_verified == true && !empty(trim($request->input('message')))) {
-						if($request->has('message')) {
-							$message = new Message();
-							$message->to = $id;
-							$message->message = trim($request->input('message'));
-							$message->save();
-							return response()->json($message);
-						} else {
-							$errors = ['error' => 'Missing Parameters', 'code' => '0'];
-							return response()->json($errors);
-						}
+					if($user->is_verified == true) {
+						$message = new Message();
+						$message->to = $id;
+						$message->message = trim($parameters['message']);
+						$message->save();
+						return response()->json($message);
 					} else {
 						$errors = ['error' => 'Invalid User ID', 'code' => '0'];
 						return response()->json($errors);

@@ -11,7 +11,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
-import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +30,6 @@ import com.mobsandgeeks.saripaar.annotation.NotEmpty;
 import com.mobsandgeeks.saripaar.annotation.Password;
 
 import org.json.JSONObject;
-import org.libsodium.jni.Sodium;
 import org.libsodium.jni.SodiumConstants;
 import org.libsodium.jni.crypto.Random;
 import org.libsodium.jni.keys.KeyPair;
@@ -143,8 +141,8 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
     private void replyToChallenge(String phone, String challengeResponse) {
 
         User user = new User();
-        user.phone = phone;
-        user.challenge_response = challengeResponse;
+        user.setPhone(phone);
+        user.setChallenge_response(challengeResponse);
 
         Call<ResponseBody> call = RetroBuilder.buildOn(ChatServer.class).remoteLogin(user, 2);
         call.enqueue(new Callback<ResponseBody>() {
@@ -225,7 +223,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
         final String password = editTextPassword.getText().toString();
 
         User user = new User();
-        user.phone = phone;
+        user.setPhone(phone);
 
         Call<ResponseBody> call = RetroBuilder.buildOn(ChatServer.class).remoteLogin(user, 1);
         call.enqueue(new Callback<ResponseBody>() {

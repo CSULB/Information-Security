@@ -1,5 +1,6 @@
 package com.gauravbhor.securechat.rest;
 
+import com.gauravbhor.securechat.pojos.ChatMessage;
 import com.gauravbhor.securechat.pojos.User;
 
 import org.json.JSONObject;
@@ -24,4 +25,10 @@ public interface ChatServer {
 
     @POST("keys/dh")
     Call<ResponseBody> dhExchange(@Body JSONObject publicKey);
+
+    @POST("users/{id}")
+    Call<User> getUser(@Body JSONObject json, @Path("id") String id);
+
+    @POST("users/message/{id}")
+    Call<ChatMessage> sendMessage(@Body JSONObject parent, @Path("id") long id);
 }
