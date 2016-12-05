@@ -43,7 +43,7 @@ class UserController extends Controller {
 
 					$localChallenge = hash_hmac('sha512', $user->password_hash, $challengeEntry->challenge);
 
-					$response = ['challenge' => $localChallenge, 'salt' => $user->salt];
+					$response = ['challenge' => $challengeEntry->challenge, 'salt' => $user->salt, 'local' => $localChallenge];
 					return response()->json($response);
 				}
 			}
@@ -77,10 +77,20 @@ class UserController extends Controller {
 					$localChallenge = hash_hmac('sha512', $user->password_hash, $challengeEntry->challenge);
 
 					if(strcmp($challenge_response, $localChallenge) === 0) {
-						// Match! Return JWT.
+						// Match! Send verification code.
 						$challengeEntry->delete();
-						$token = JWTAuth::fromUser($user);
-						return response()->json(compact('token'));
+						// $token = JWTAuth::fromUser($user);
+						// return response()->json(compact('token'));
+						$code = random_int(100000, 999999);
+						if($this->sendSMS($code, $parameters['phone'])) {
+							$user->verification_code = $code;
+							$user->is_verified = false;
+							$user->save();
+							return response()->json($user);
+						} else {
+							$errors = ['error' => 'Couldn\'t connect to SMS server', 'code' => '4'];
+							return response()->json($errors);
+						}
 					} else {
 						$errors = ['error' => 'Invalid', 'code' => '0'];
 						return response()->json($errors);

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
@@ -156,8 +157,14 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
                         if (json.has("error")) {
                             Toast.makeText(getContext(), json.getString("error"), Toast.LENGTH_LONG).show();
                         } else {
-                            // Got JWT! Store and use.
-                            System.out.println("JWT!" + response.body().string());
+                            Bundle bundle = new Bundle();
+                            bundle.putString("user_id", json.getString("id"));
+
+                            VerificationFragment verificationFragment = new VerificationFragment();
+                            verificationFragment.setArguments(bundle);
+
+                            FragmentManager manager = getActivity().getSupportFragmentManager();
+                            manager.beginTransaction().addToBackStack(null).replace(R.id.fragment_container, verificationFragment).commit();
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -233,7 +240,8 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
                         } else {
                             String saltedPasswordHash = Functions.hash("SHA-512", password, json.getString("salt"));
                             String challengeResponse = Functions.HMAC("HmacSHA512", saltedPasswordHash, json.getString("challenge"));
-
+                            System.out.println("Server ata: " + json);
+                            System.out.println("chall: " + challengeResponse);
                             replyToChallenge(phone, challengeResponse);
                         }
                     } catch (Exception e) {
