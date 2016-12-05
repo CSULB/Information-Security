@@ -1,8 +1,10 @@
 package com.gauravbhor.securechat.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,12 +14,21 @@ import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.libsodium.jni.SodiumConstants;
+import org.libsodium.jni.crypto.Random;
+import org.libsodium.jni.keys.KeyPair;
 
 import java.io.IOException;
 
+
 import com.gauravbhor.securechat.R;
+import com.gauravbhor.securechat.activities.FriendListActivity;
 import com.gauravbhor.securechat.rest.ChatServer;
+import com.gauravbhor.securechat.utils.PreferenceHelper;
+import com.gauravbhor.securechat.utils.PreferenceKeys;
 import com.gauravbhor.securechat.utils.RetroBuilder;
+import com.gauravbhor.securechat.utils.StaticMembers;
+
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -60,6 +71,14 @@ public class VerificationFragment extends Fragment {
                                         } else {
                                             Toast.makeText(getContext(), "Verified!", Toast.LENGTH_LONG).show();
                                             // Open friend's list
+                                            byte[] seed = new Random().randomBytes(SodiumConstants.SECRETKEY_BYTES);
+                                            KeyPair key = new KeyPair(seed);
+                                            String publicKey = Base64.encodeToString(key.getPublicKey().toBytes(), StaticMembers.BASE64_SAFE_URL_FLAGS);
+                                            String privateKey = Base64.encodeToString(key.getPrivateKey().toBytes(), StaticMembers.BASE64_SAFE_URL_FLAGS);
+                                            PreferenceHelper.save(PreferenceKeys.PRIVATE_KEY,privateKey);
+                                            PreferenceHelper.save(PreferenceKeys.PUBLIC_KEY,publicKey);
+                                            Intent intent = new Intent(getActivity(), FriendListActivity.class);
+                                            startActivity(intent);
                                         }
                                     } else {
                                         Toast.makeText(getContext(), "Error. Please try again", Toast.LENGTH_LONG).show();

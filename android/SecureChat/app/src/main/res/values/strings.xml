@@ -9,5 +9,7 @@
     <string name="last_name">Last Name</string>
     <string name="confirm_password">Confirm Password</string>
     <string name="enter_code">Enter the verficiation code sent to your phone</string>
+    <string name="scan_key">Scan Public Key</string>
+    <string name="show_key">Show Public Key</string>
     <string name="verify">Verify</string>
 </resources>
