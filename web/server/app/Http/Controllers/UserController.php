@@ -6,6 +6,7 @@ use JWTAuth;
 
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\Message;
 use App\Models\Challenge;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -189,6 +190,7 @@ class UserController extends Controller {
 		}
 	}
 
+	// Contact sms server
 	public function sendSMS($code, $phone) {
 		return true;
 		// $formParams = [
@@ -218,9 +220,11 @@ class UserController extends Controller {
 	public function verify(Request $request) {
 
 		$parameters = $request->all()['nameValuePairs'];
-
 		$user = User::find($parameters['user_id']);
 		if(empty($user)) {
+			$errors = ['error' => 'Couldn\'t verify', 'code' => '6'];
+		    					return response()->json($errors);
+		} else {
 			if(strcmp($user->verification_code, $parameters['code']) == 0) {
 				// Code is verified. Login the user.
 				$user->verification_code = '';
@@ -230,26 +234,79 @@ class UserController extends Controller {
 			} else {
 				// Invalid verification code.
 				$errors = ['error' => 'Couldn\'t verify', 'code' => '5'];
-		    					return response()->json($errors);
+								return response()->json($errors);
 			}
-		} else {
-			$errors = ['error' => 'Couldn\'t verify', 'code' => '6'];
-		    					return response()->json($errors);
 		}
 	}
 
+	// Get user data for friend's list
 	public function getUser(Request $request, $id) {
-		JWTAuth::parseToken();
-		$user = JWTAuth::parseToken()->authenticate();
-		$user = User::find($id);
-		// echo $id; exit;
-		if(empty($user)) {
-			$errors = ['error' => 'Invalid', 'code' => '0'];
-			return response()->json($errors);
+		// JWTAuth::parseToken()->authenticate();
+
+		// Sender should exist and be verified
+		if($request->has('sender_id')) {
+			$sender = User::find($request->input('sender_id'));
+			if(empty($sender) || $sender->is_verified == false) {
+				$errors = ['error' => 'Invalid ID', 'code' => '0'];
+				return response()->json($errors);
+			} else {
+				// User should exist and be verified
+				$user = User::find($id);
+				if(empty($user) || $user->is_verified == false) {
+					$errors = ['error' => 'Invalid ID', 'code' => '1'];
+					return response()->json($errors);
+				} else {
+					return response()->json($user);
+				}
+			}
 		} else {
-			return response()->json($user);
+			$errors = ['error' => 'Missing Parameters', 'code' => '0'];
+			return response()->json($errors);
+		}
+
+	}
+
+	// Send message to user with ID = $id
+	public function sendMessage(Request $request, $id) {
+		// JWTAuth::parseToken()->authenticate();
+
+		// Sender should exist and be verified
+		if($request->has('sender_id')) {
+			$sender = User::find($request->input('sender_id'));
+			if(empty($sender) || $sender->is_verified == false) {
+				$errors = ['error' => 'Invalid ID', 'code' => '0'];
+				return response()->json($errors);
+			} else {
+				// User should exist and be verified
+				$user = User::find($id);
+				if(empty($user)) {
+					$errors = ['error' => 'Invalid ID', 'code' => '0'];
+					return response()->json($errors);
+				} else {
+					if($user->is_verified == true && !empty(trim($request->input('message')))) {
+						if($request->has('message')) {
+							$message = new Message();
+							$message->to = $id;
+							$message->message = trim($request->input('message'));
+							$message->save();
+							return response()->json($message);
+						} else {
+							$errors = ['error' => 'Missing Parameters', 'code' => '0'];
+							return response()->json($errors);
+						}
+					} else {
+						$errors = ['error' => 'Invalid User ID', 'code' => '0'];
+						return response()->json($errors);
+					}
+				}
+			}
+		} else {
+			$errors = ['error' => 'Missing Parameters', 'code' => '0'];
+			return response()->json($errors);
 		}
 	}
+
+
 }
 
 ?>

@@ -19,6 +19,13 @@ $app->group(['prefix' => 'api/v1'], function($app) {
     $app->post('users/login/{step}','UserController@login');
     $app->post('users/register','UserController@register');
     $app->post('users/verify','UserController@verify');
-    $app->get('users/{id}', 'UserController@getUser');
+
+    $app->post('users/{id}', 'UserController@getUser');
+    $app->post('users/message/{id}', 'UserController@sendMessage');
+
+    $app->post('groups/create', 'GroupController@createGroup');
+    $app->post('groups/messages/send/{id}', 'GroupController@sendMessage');
+    $app->post('groups/messages/{groupId}', 'GroupController@getMessages');
+
     $app->post('keys/dh','KeyController@diffie');
 });
