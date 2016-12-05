@@ -37,6 +37,13 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activities.FriendListActivity" />
         </activity>
+
+        <service
+            android:name=".services.GroupMessageService"
+            android:exported="false" />
+        <service
+            android:name=".services.MessageService"
+            android:exported="false" />
     </application>
 
 </manifest>

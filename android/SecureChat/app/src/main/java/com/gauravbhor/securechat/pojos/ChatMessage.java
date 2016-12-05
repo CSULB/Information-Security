@@ -1,14 +1,22 @@
 package com.gauravbhor.securechat.pojos;
 
+import com.google.gson.annotations.SerializedName;
+
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by bhorg on 12/5/2016.
  */
 public class ChatMessage extends RealmObject {
 
+    @PrimaryKey
     private long id;
+
+    @SerializedName("from")
     private long sender;
+
+    @SerializedName("to")
     private long receiver;
     private String message;
     private int type;

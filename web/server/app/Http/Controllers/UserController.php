@@ -255,7 +255,8 @@ class UserController extends Controller {
 
 	// Get user data for friend's list
 	public function getUser(Request $request, $id) {
-		// JWTAuth::parseToken()->authenticate();
+		
+		JWTAuth::parseToken()->authenticate();
 		$parameters = $request->all();
 		// Sender should exist and be verified
 		if($parameters['nameValuePairs']['sender_id']) {
@@ -282,7 +283,7 @@ class UserController extends Controller {
 
 	// Send message to user with ID = $id
 	public function sendMessage(Request $request, $id) {
-		// JWTAuth::parseToken()->authenticate();
+		JWTAuth::parseToken()->authenticate();
 
 		$parameters = $request->all()['nameValuePairs'];
 		// Sender should exist and be verified
@@ -301,6 +302,7 @@ class UserController extends Controller {
 					if($user->is_verified == true) {
 						$message = new Message();
 						$message->to = $id;
+						$message->from = $parameters['sender_id'];
 						$message->message = trim($parameters['message']);
 						$message->save();
 						return response()->json($message);
@@ -316,6 +318,23 @@ class UserController extends Controller {
 		}
 	}
 
+	public function getMessages(Request $request, $id, $mid) {
+		JWTAuth::parseToken()->authenticate();
+
+		$user = User::find($id);
+		if(empty($user)) {
+			$errors = ['error' => 'Invalid ID', 'code' => '0'];
+			return response()->json($errors);
+		} else {
+			if($user->is_verified == true) {
+				$messages = Message::where('to', $id)->where('id', '>', $mid)->orderBy('created_at', 'asc')->get();
+				return response()->json($messages);
+			} else {
+				$errors = ['error' => 'Invalid User ID', 'code' => '0'];
+				return response()->json($errors);
+			}
+		}
+	}
 
 }
 

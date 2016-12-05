@@ -1,5 +1,9 @@
 package com.gauravbhor.securechat.activities;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.View;
@@ -23,7 +27,6 @@ import org.json.JSONObject;
 import org.libsodium.jni.Sodium;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmQuery;
@@ -41,6 +44,8 @@ public class ChatActivity extends SuperActivity {
     private EditText etMessage;
     private Button button;
     private ListView listView;
+    private BroadcastReceiver receiver;
+    private boolean isRegistered;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +68,14 @@ public class ChatActivity extends SuperActivity {
         final MessageAdapter adapter = new MessageAdapter(this, 0, result, id, user.getId());
         listView.setAdapter(adapter);
 
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                adapter.notifyDataSetChanged();
+                listView.setSelection(adapter.getCount() - 1);
+            }
+        };
+
         getSupportActionBar().setTitle(chatUser.getFirst_name());
 
         selfPrivateKey = Base64.decode(PreferenceHelper.getString(PreferenceKeys.PRIVATE_KEY), StaticMembers.BASE64_SAFE_URL_FLAGS);
@@ -84,14 +97,13 @@ public class ChatActivity extends SuperActivity {
                     byte[] cipher = new byte[Sodium.crypto_secretbox_macbytes() + messageBytes.length];
                     Sodium.crypto_box_easy(cipher, messageBytes, messageBytes.length, nonce, receiverPublicKey, selfPrivateKey);
 
-                    String cipherText = Base64.encodeToString(cipher, StaticMembers.BASE64_SAFE_URL_FLAGS);
-                    System.out.println("Encrypted" + cipherText);
-
                     JSONObject parent = new JSONObject();
                     try {
                         JSONObject mess = new JSONObject();
                         mess.put("type", 1);
-                        mess.put("message", cipherText);
+                        mess.put("nonce", Base64.encodeToString(nonce, StaticMembers.BASE64_SAFE_URL_FLAGS));
+                        mess.put("message", Base64.encodeToString(cipher, StaticMembers.BASE64_SAFE_URL_FLAGS));
+                        mess.put("length", message.length());
 
                         parent.put("sender_id", user.getId());
                         parent.put("message", mess.toString());
@@ -103,12 +115,13 @@ public class ChatActivity extends SuperActivity {
                             public void onResponse(Call<ChatMessage> call, final Response<ChatMessage> response) {
                                 if (response.isSuccessful()) {
                                     realm.executeTransaction(new Realm.Transaction() {
+
                                         @Override
                                         public void execute(Realm realm) {
                                             ChatMessage chatMessage = response.body();
                                             chatMessage.setReceiver(id);
                                             chatMessage.setSender(user.getId());
-                                            chatMessage.setMessage(finalMessage);
+                                            chatMessage.setMessage("You: " + finalMessage);
                                             realm.copyToRealm(chatMessage);
                                             adapter.notifyDataSetChanged();
                                             listView.setSelection(adapter.getCount() - 1);
@@ -129,13 +142,6 @@ public class ChatActivity extends SuperActivity {
                         e.printStackTrace();
                         Toast.makeText(ChatActivity.this, "Error sending message. Please try again.", Toast.LENGTH_LONG).show();
                     }
-
-//                    byte[] decodedMessage = new byte[messageBytes.length];
-//                    byte[] cipher2 = Base64.decode(cipherText, BASE64_SAFE_URL_FLAGS);
-//
-//                    Sodium.crypto_box_open_easy(decodedMessage, cipher2, cipher2.length, nonce, alicePublicKey, bobPrivateKey);
-//
-//                    System.out.println("Decrypted" + new String(decodedMessage, StandardCharsets.UTF_8));
                 } else {
                     // Don't send blank message
                 }
@@ -147,11 +153,20 @@ public class ChatActivity extends SuperActivity {
     public void onStart() {
         super.onStart();
         realm = Realm.getDefaultInstance();
+        if (!isRegistered) {
+            registerReceiver(receiver, new IntentFilter(StaticMembers.UPDATE_MESSAGES));
+            isRegistered = true;
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
         realm.close();
+        if (isRegistered) {
+            unregisterReceiver(receiver);
+            isRegistered = false;
+        }
     }
+
 }

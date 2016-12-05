@@ -44,9 +44,9 @@ public class MessageAdapter extends ArrayAdapter<ChatMessage> {
         ChatMessage chatMessage = getItem(position);
         h.message.setText(chatMessage.getMessage());
 
-        if (chatMessage.getSender() == theirID) {
-            h.message.setTextColor(Color.BLUE);
-        }
+//        if (chatMessage.getSender() != myID) {
+//            h.message.setTextColor(Color.BLUE);
+//        }
 
         return v;
     }

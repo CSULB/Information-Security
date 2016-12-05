@@ -14,6 +14,8 @@ import com.gauravbhor.securechat.R;
 import com.gauravbhor.securechat.adapters.FriendsAdapter;
 import com.gauravbhor.securechat.pojos.User;
 import com.gauravbhor.securechat.rest.ChatServer;
+import com.gauravbhor.securechat.services.GroupMessageService;
+import com.gauravbhor.securechat.services.MessageService;
 import com.gauravbhor.securechat.utils.RetroBuilder;
 import com.gauravbhor.securechat.utils.StaticMembers;
 import com.google.zxing.integration.android.IntentIntegrator;
@@ -45,6 +47,9 @@ public class FriendListActivity extends SuperActivity implements AdapterView.OnI
         realm = Realm.getDefaultInstance();
         RealmQuery<User> query = realm.where(User.class);
         RealmResults<User> result = query.findAll();
+
+        startService(new Intent(this, MessageService.class));
+        startService(new Intent(this, GroupMessageService.class));
 
         adapter = new FriendsAdapter(this, 0, result);
         listView.setAdapter(adapter);

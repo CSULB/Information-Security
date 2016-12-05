@@ -74,9 +74,12 @@ public class VerificationFragment extends Fragment {
                                         } else {
 
                                             PreferenceHelper.save(PreferenceKeys.USER, resp.toString());
+                                            PreferenceHelper.save(PreferenceKeys.JWT, resp.getString("token"));
+
+                                            System.out.println("JWT: " + resp.getString("token"));
 
                                             SuperActivity.user = new Gson().fromJson(resp.toString(), User.class);
-
+                                            PreferenceHelper.save(PreferenceKeys.USER_ID, SuperActivity.user.getId());
                                             Toast.makeText(getContext(), "Verified!", Toast.LENGTH_LONG).show();
                                             // Open friend's list
                                             byte[] seed = new Random().randomBytes(SodiumConstants.SECRETKEY_BYTES);
