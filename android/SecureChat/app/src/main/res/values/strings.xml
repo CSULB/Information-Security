@@ -1,6 +1,15 @@
 <resources>
     <string name="app_name">Secure Chat</string>
-    <string name="email">Email</string>
+    <string name="phone">Phone</string>
     <string name="password">Password</string>
+    <string name="password_desc">(Minimum 8 characters in length, Uppercase Letters, Lowercase Letters, Numbers and Symbols)</string>
     <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="enter_code">Enter the verficiation code sent to your phone</string>
+    <string name="scan_key">Scan Public Key</string>
+    <string name="show_key">Show Public Key</string>
+    <string name="verify">Verify</string>
 </resources>

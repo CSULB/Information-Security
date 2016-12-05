@@ -13,7 +13,12 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        \Laravelista\LumenVendorPublish\VendorPublishCommand::class
+    ];
+
+    protected $routeMiddleware = [
+      'jwt.auth' => 'Tymon\JWTAuth\Middleware\GetUserFromToken',
+      'jwt.refresh' => 'Tymon\JWTAuth\Middleware\RefreshToken',
     ];
 
     /**
