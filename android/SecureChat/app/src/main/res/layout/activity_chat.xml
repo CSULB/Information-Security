@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_chat"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="5dp"
+    tools:context="com.gauravbhor.securechat.activities.ChatActivity">
+
+    <ListView
+        android:id="@+id/listview_messages"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/ll1"
+        android:layout_alignParentTop="true" />
+
+    <LinearLayout
+        android:id="@+id/ll1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:weightSum="12">
+
+        <EditText
+            android:id="@+id/edittext_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="9" />
+
+        <Button
+            android:id="@+id/button_send_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:text="Send" />
+    </LinearLayout>
+</RelativeLayout>

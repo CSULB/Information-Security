@@ -101,11 +101,11 @@ public class RegisterFragment extends Fragment implements Validator.ValidationLi
 //        RetroBuilder.buildOn(ChatServer.class).dhExchange(json).enqueue(new Callback<ResponseBody>() {
 
         User user = new User();
-        user.first_name = firstName.getText().toString();
-        user.last_name = lastName.getText().toString();
-        user.phone = phone.getText().toString();
-        user.password = password.getText().toString();
-        user.confirm_password = confirmPassword.getText().toString();
+        user.setFirst_name(firstName.getText().toString());
+        user.setLast_name(lastName.getText().toString());
+        user.setPhone(phone.getText().toString());
+        user.setPassword(password.getText().toString());
+        user.setConfirm_password(confirmPassword.getText().toString());
 
         RetroBuilder.buildOn(ChatServer.class).register(user).enqueue(new Callback<ResponseBody>() {
 

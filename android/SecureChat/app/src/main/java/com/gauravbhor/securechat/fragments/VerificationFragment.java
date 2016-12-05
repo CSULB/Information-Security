@@ -23,11 +23,14 @@ import java.io.IOException;
 
 import com.gauravbhor.securechat.R;
 import com.gauravbhor.securechat.activities.FriendListActivity;
+import com.gauravbhor.securechat.activities.SuperActivity;
+import com.gauravbhor.securechat.pojos.User;
 import com.gauravbhor.securechat.rest.ChatServer;
 import com.gauravbhor.securechat.utils.PreferenceHelper;
 import com.gauravbhor.securechat.utils.PreferenceKeys;
 import com.gauravbhor.securechat.utils.RetroBuilder;
 import com.gauravbhor.securechat.utils.StaticMembers;
+import com.google.gson.Gson;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -69,14 +72,23 @@ public class VerificationFragment extends Fragment {
                                         if (resp.has("error")) {
                                             Toast.makeText(getContext(), "Error: " + resp.getString("error"), Toast.LENGTH_LONG).show();
                                         } else {
+
+                                            PreferenceHelper.save(PreferenceKeys.USER, resp.toString());
+                                            PreferenceHelper.save(PreferenceKeys.JWT, resp.getString("token"));
+
+                                            System.out.println("JWT: " + resp.getString("token"));
+
+                                            SuperActivity.user = new Gson().fromJson(resp.toString(), User.class);
+                                            PreferenceHelper.save(PreferenceKeys.USER_ID, SuperActivity.user.getId());
                                             Toast.makeText(getContext(), "Verified!", Toast.LENGTH_LONG).show();
                                             // Open friend's list
                                             byte[] seed = new Random().randomBytes(SodiumConstants.SECRETKEY_BYTES);
                                             KeyPair key = new KeyPair(seed);
+
                                             String publicKey = Base64.encodeToString(key.getPublicKey().toBytes(), StaticMembers.BASE64_SAFE_URL_FLAGS);
                                             String privateKey = Base64.encodeToString(key.getPrivateKey().toBytes(), StaticMembers.BASE64_SAFE_URL_FLAGS);
-                                            PreferenceHelper.save(PreferenceKeys.PRIVATE_KEY,privateKey);
-                                            PreferenceHelper.save(PreferenceKeys.PUBLIC_KEY,publicKey);
+                                            PreferenceHelper.save(PreferenceKeys.PRIVATE_KEY, privateKey);
+                                            PreferenceHelper.save(PreferenceKeys.PUBLIC_KEY, publicKey);
                                             Intent intent = new Intent(getActivity(), FriendListActivity.class);
                                             startActivity(intent);
                                         }
