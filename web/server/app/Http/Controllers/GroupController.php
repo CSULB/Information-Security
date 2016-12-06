@@ -15,22 +15,22 @@ use Illuminate\Http\Request;
 class GroupController extends Controller {
 
     public function createGroup(Request $request) {
+        JWTAuth::parseToken()->authenticate();
 
-        // JWTAuth::parseToken()->authenticate();
-
-        if($request->has('name') && $request->has('user_id') && $request->has('members')) {
-            $user = User::find($request->input('user_id'));
+        if($request->has('name') && $request->has('admin_id') && $request->has('members')) {
+            $user = User::find($request->input('admin_id'));
             if(empty($user) || $user->is_verified == false) {
     			$errors = ['error' => 'Not authorized', 'code' => '0'];
-    			return response()->json($errors);
+    			return response()->json($errors, 500);
     		} else {
 			    $group = Group::where('name', $request->input('name'))->first();
                 if(!empty($group)) {
                     $errors = ['error' => 'Group name exists', 'code' => '1'];
-                    return response()->json($errors);
+                    return response()->json($errors, 500);
                 } else {
-                    $group = new Group();
+                    $group = new Group;
                     $group->name = $request->input('name');
+                    $group->admin_id = $request->input('admin_id');
                     $group->members = $request->input('members');
                     $group->save();
                     return response()->json($group);
@@ -38,14 +38,14 @@ class GroupController extends Controller {
     		}
         } else {
             $errors = ['error' => 'Missing Parameters', 'code' => '0'];
-            return response()->json($errors);
+            return response()->json($errors, 500);
         }
     }
 
     // Send message to group with ID = $id
     public function sendMessage(Request $request, $groupId) {
 
-        // JWTAuth::parseToken()->authenticate();
+        JWTAuth::parseToken()->authenticate();
 
         // Sender should exist and be verified
 		if($request->has('sender_id') && $request->has('message')) {

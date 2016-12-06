@@ -284,7 +284,6 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
     }
 
     private void updateUI(boolean isLoading) {
-        Thread.dumpStack();
         if (isLoading) {
             progressView.setVisibility(View.VISIBLE);
             progressView.startAnimation();

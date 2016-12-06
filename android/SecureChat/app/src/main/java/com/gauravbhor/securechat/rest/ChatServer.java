@@ -1,6 +1,7 @@
 package com.gauravbhor.securechat.rest;
 
 import com.gauravbhor.securechat.pojos.ChatMessage;
+import com.gauravbhor.securechat.pojos.Group;
 import com.gauravbhor.securechat.pojos.User;
 
 import org.json.JSONObject;
@@ -37,4 +38,7 @@ public interface ChatServer {
 
     @GET("users/message/{id}/{mid}")
     Call<ResponseBody> getMessages(@Path("id") long id, @Path("mid") long mid);
+
+    @POST("groups/create")
+    Call<Group> createGroup(@Body Group group);
 }

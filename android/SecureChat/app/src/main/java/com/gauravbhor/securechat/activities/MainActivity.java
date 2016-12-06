@@ -6,8 +6,6 @@ import android.os.Bundle;
 import com.gauravbhor.securechat.R;
 import com.gauravbhor.securechat.fragments.LoginFragment;
 import com.gauravbhor.securechat.pojos.User;
-import com.gauravbhor.securechat.services.GroupMessageService;
-import com.gauravbhor.securechat.services.MessageService;
 import com.gauravbhor.securechat.utils.PreferenceHelper;
 import com.gauravbhor.securechat.utils.PreferenceKeys;
 import com.google.gson.Gson;
@@ -24,7 +22,7 @@ public class MainActivity extends SuperActivity {
         String userJson = PreferenceHelper.getString(PreferenceKeys.USER);
         if (userJson != null) {
             SuperActivity.user = new Gson().fromJson(userJson, User.class);
-            startActivity(new Intent(this, FriendListActivity.class));
+            startActivity(new Intent(this, TabbedActivity.class));
         } else {
             LoginFragment loginFragment = new LoginFragment();
             loginFragment.setArguments(getIntent().getExtras());
