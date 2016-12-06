@@ -38,8 +38,8 @@ public class FriendsAdapter extends ArrayAdapter<User> {
         }
 
         User user = getItem(position);
-        h.fName.setText(user.getFirst_name());
-        h.lName.setText(user.getLast_name());
+        h.fName.setText(user.getFirst_name() + " " + user.getLast_name());
+        h.lName.setText(user.getPhone());
 
         return v;
     }
