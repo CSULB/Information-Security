@@ -2,11 +2,14 @@ package com.gauravbhor.securechat.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.gauravbhor.securechat.R;
@@ -44,9 +47,19 @@ public class MessageAdapter extends ArrayAdapter<ChatMessage> {
         ChatMessage chatMessage = getItem(position);
         h.message.setText(chatMessage.getMessage());
 
-//        if (chatMessage.getSender() != myID) {
-//            h.message.setTextColor(Color.BLUE);
-//        }
+        if (chatMessage.getSender() != myID) {
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(h.message.getLayoutParams());
+            params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+            h.message.setLayoutParams(params);
+            Drawable d = h.message.getBackground();
+            d.setColorFilter(Color.LTGRAY, PorterDuff.Mode.SRC);
+        } else {
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(h.message.getLayoutParams());
+            params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            h.message.setLayoutParams(params);
+            Drawable d = h.message.getBackground();
+            d.setColorFilter(Color.parseColor("#ff33b5e5"), PorterDuff.Mode.SRC);
+        }
 
         return v;
     }

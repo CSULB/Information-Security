@@ -121,7 +121,7 @@ public class ChatActivity extends SuperActivity {
                                             ChatMessage chatMessage = response.body();
                                             chatMessage.setReceiver(id);
                                             chatMessage.setSender(user.getId());
-                                            chatMessage.setMessage("You: " + finalMessage);
+                                            chatMessage.setMessage(finalMessage);
                                             realm.copyToRealm(chatMessage);
                                             adapter.notifyDataSetChanged();
                                             listView.setSelection(adapter.getCount() - 1);

@@ -4,6 +4,7 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.os.Handler;
 import android.util.Base64;
+import android.util.Log;
 
 import com.gauravbhor.securechat.activities.SuperActivity;
 import com.gauravbhor.securechat.pojos.ChatMessage;
@@ -73,19 +74,23 @@ public class MessageService extends IntentService {
                                             int length = mess.getInt("length");
                                             byte[] decodedMessage = new byte[length];
 
-                                            Sodium.crypto_box_open_easy(decodedMessage, cipher, cipher.length, nonce, Base64.decode(user.getPublicKey(), StaticMembers.BASE64_SAFE_URL_FLAGS), privateKey);
+                                            int result = Sodium.crypto_box_open_easy(decodedMessage, cipher, cipher.length, nonce, Base64.decode(user.getPublicKey(), StaticMembers.BASE64_SAFE_URL_FLAGS), privateKey);
 
-                                            String plainText = new String(decodedMessage, StandardCharsets.UTF_8);
-                                            System.out.println("PT: " + plainText);
+                                            if (result == 0) {
+                                                String plainText = new String(decodedMessage, StandardCharsets.UTF_8);
+                                                System.out.println("PT: " + plainText);
 
-                                            ChatMessage chatMessage = new ChatMessage();
-                                            chatMessage.setId(lastestID);
-                                            chatMessage.setMessage(user.getFirst_name() + ": " + plainText);
-                                            chatMessage.setSender(singleMessage.getLong("from"));
-                                            chatMessage.setReceiver(myUserId);
-                                            chatMessage.setType(type);
-                                            realm.copyToRealm(chatMessage);
-                                            sendBroadcast(new Intent(StaticMembers.UPDATE_MESSAGES));
+                                                ChatMessage chatMessage = new ChatMessage();
+                                                chatMessage.setId(lastestID);
+                                                chatMessage.setMessage(plainText);
+                                                chatMessage.setSender(singleMessage.getLong("from"));
+                                                chatMessage.setReceiver(myUserId);
+                                                chatMessage.setType(type);
+                                                realm.copyToRealm(chatMessage);
+                                                sendBroadcast(new Intent(StaticMembers.UPDATE_MESSAGES));
+                                            } else {
+                                                Log.e("SecureChat", "Couldn't decrypt message");
+                                            }
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }
@@ -96,7 +101,6 @@ public class MessageService extends IntentService {
                             }
                         });
                     } else {
-                        // Fail silently
                         try {
                             System.out.println(response.errorBody().string());
                         } catch (IOException e) {
