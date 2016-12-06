@@ -21,21 +21,21 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.FriendListActivity"
-            android:label="Friends List" />
+            android:name=".activities.TabbedActivity"
+            android:label="@string/app_name" />
         <activity
             android:name=".activities.GeneratorActivity"
-            android:parentActivityName=".activities.FriendListActivity">
+            android:parentActivityName=".activities.TabbedActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.FriendListActivity" />
+                android:value=".activities.TabbedActivity" />
         </activity>
         <activity
             android:name=".activities.ChatActivity"
-            android:parentActivityName=".activities.FriendListActivity">
+            android:parentActivityName=".activities.TabbedActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.FriendListActivity" />
+                android:value=".activities.TabbedActivity" />
         </activity>
 
         <service
@@ -44,6 +44,22 @@
         <service
             android:name=".services.MessageService"
             android:exported="false" />
+
+        <activity
+            android:name=".activities.CreateGroupActivity"
+            android:label="Create Group"
+            android:parentActivityName=".activities.TabbedActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.TabbedActivity" />
+        </activity>
+        <activity
+            android:name=".activities.GroupChatActivity"
+            android:parentActivityName=".activities.TabbedActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.TabbedActivity" />
+        </activity>
     </application>
 
 </manifest>

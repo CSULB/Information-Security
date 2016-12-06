@@ -22,7 +22,7 @@ import java.io.IOException;
 
 
 import com.gauravbhor.securechat.R;
-import com.gauravbhor.securechat.activities.FriendListActivity;
+import com.gauravbhor.securechat.activities.TabbedActivity;
 import com.gauravbhor.securechat.activities.SuperActivity;
 import com.gauravbhor.securechat.pojos.User;
 import com.gauravbhor.securechat.rest.ChatServer;
@@ -96,7 +96,7 @@ public class VerificationFragment extends Fragment {
                                             String privateKey = Base64.encodeToString(key.getPrivateKey().toBytes(), StaticMembers.BASE64_SAFE_URL_FLAGS);
                                             PreferenceHelper.save(PreferenceKeys.PRIVATE_KEY, privateKey);
                                             PreferenceHelper.save(PreferenceKeys.PUBLIC_KEY, publicKey);
-                                            Intent intent = new Intent(getActivity(), FriendListActivity.class);
+                                            Intent intent = new Intent(getActivity(), TabbedActivity.class);
                                             startActivity(intent);
                                         }
                                     } else {
