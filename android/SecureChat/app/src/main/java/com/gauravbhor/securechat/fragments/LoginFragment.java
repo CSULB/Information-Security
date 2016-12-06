@@ -3,6 +3,7 @@ package com.gauravbhor.securechat.fragments;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -23,6 +24,7 @@ import com.gauravbhor.securechat.pojos.User;
 import com.gauravbhor.securechat.rest.ChatServer;
 import com.gauravbhor.securechat.utils.Functions;
 import com.gauravbhor.securechat.utils.RetroBuilder;
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
 import com.mobsandgeeks.saripaar.annotation.DecimalMin;
@@ -56,20 +58,22 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
     private EditText editTextPassword;
 
     private Button loginButton, registerButton;
-
     private String userId;
-
     private Validator validator;
+
+    private CircularProgressView progressView;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_login, container, false);
 
+        progressView = (CircularProgressView) rootView.findViewById(R.id.progress_view);
         editTextPhone = (EditText) rootView.findViewById(R.id.edittext_phone);
         editTextPassword = (EditText) rootView.findViewById(R.id.edittext_password);
         loginButton = (Button) rootView.findViewById(R.id.button_login);
         registerButton = (Button) rootView.findViewById(R.id.button_register);
+        registerButton.setPaintFlags(registerButton.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
 
         loginButton.setOnClickListener(this);
         registerButton.setOnClickListener(this);
@@ -144,11 +148,14 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
         user.setPhone(phone);
         user.setChallenge_response(challengeResponse);
 
+        updateUI(true);
+
         Call<ResponseBody> call = RetroBuilder.buildOn(ChatServer.class).remoteLogin(user, 2);
         call.enqueue(new Callback<ResponseBody>() {
 
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                updateUI(false);
                 if (response.isSuccessful()) {
                     try {
                         JSONObject json = new JSONObject(response.body().string());
@@ -175,6 +182,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Toast.makeText(getContext(), "Error: " + t.getMessage() + ". Please try again", Toast.LENGTH_LONG).show();
+                updateUI(false);
             }
         });
     }
@@ -230,6 +238,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
 
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                updateUI(false);
                 if (response.isSuccessful()) {
                     try {
                         JSONObject json = new JSONObject(response.body().string());
@@ -241,6 +250,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
                             System.out.println("Server ata: " + json);
                             System.out.println("chall: " + challengeResponse);
                             replyToChallenge(phone, challengeResponse);
+                            updateUI(true);
                         }
                     } catch (Exception e) {
                         Toast.makeText(getContext(), "Error. Please try again", Toast.LENGTH_LONG).show();
@@ -254,12 +264,15 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Toast.makeText(getContext(), "Error: " + t.getMessage() + ". Please try again", Toast.LENGTH_LONG).show();
+                updateUI(false);
             }
         });
     }
 
     @Override
     public void onValidationFailed(List<ValidationError> errors) {
+        updateUI(false);
+
         for (ValidationError error : errors) {
             if (error.getView() == editTextPassword) {
                 editTextPassword.setError("Please select a stronger password");
@@ -269,4 +282,24 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
             }
         }
     }
+
+    private void updateUI(boolean isLoading) {
+        Thread.dumpStack();
+        if (isLoading) {
+            progressView.setVisibility(View.VISIBLE);
+            progressView.startAnimation();
+            loginButton.setEnabled(false);
+            registerButton.setEnabled(false);
+            editTextPassword.setEnabled(false);
+            editTextPhone.setEnabled(false);
+        } else {
+            progressView.stopAnimation();
+            progressView.setVisibility(View.INVISIBLE);
+            loginButton.setEnabled(true);
+            registerButton.setEnabled(true);
+            editTextPassword.setEnabled(true);
+            editTextPhone.setEnabled(true);
+        }
+    }
+
 }

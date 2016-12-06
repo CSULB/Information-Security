@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.gauravbhor.securechat.R;
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
 import com.mobsandgeeks.saripaar.annotation.ConfirmPassword;
@@ -27,6 +28,7 @@ import java.util.List;
 import com.gauravbhor.securechat.pojos.User;
 import com.gauravbhor.securechat.rest.ChatServer;
 import com.gauravbhor.securechat.utils.RetroBuilder;
+
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -57,12 +59,14 @@ public class RegisterFragment extends Fragment implements Validator.ValidationLi
 
     private Button register;
     private Validator validator;
+    private CircularProgressView progressView;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_register, container, false);
 
+        progressView = (CircularProgressView) rootView.findViewById(R.id.progress_view);
         firstName = (EditText) rootView.findViewById(R.id.edittext_first_name);
         lastName = (EditText) rootView.findViewById(R.id.edittext_last_name);
         phone = (EditText) rootView.findViewById(R.id.edittext_phone);
@@ -100,6 +104,7 @@ public class RegisterFragment extends Fragment implements Validator.ValidationLi
 
 //        RetroBuilder.buildOn(ChatServer.class).dhExchange(json).enqueue(new Callback<ResponseBody>() {
 
+        updateUI(true);
         User user = new User();
         user.setFirst_name(firstName.getText().toString());
         user.setLast_name(lastName.getText().toString());
@@ -111,6 +116,7 @@ public class RegisterFragment extends Fragment implements Validator.ValidationLi
 
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                updateUI(false);
                 if (response.isSuccessful()) {
                     try {
 //                        Attempt at diffie hellman
@@ -177,6 +183,7 @@ public class RegisterFragment extends Fragment implements Validator.ValidationLi
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
+                updateUI(false);
                 Toast.makeText(getContext(), "Error: " + t.getMessage() + ". Please try again", Toast.LENGTH_LONG).show();
                 t.printStackTrace();
             }
@@ -206,27 +213,23 @@ public class RegisterFragment extends Fragment implements Validator.ValidationLi
         }
     }
 
-    /*
-    * Credits to this StackOverflow question http://stackoverflow.com/a/13006907/2058134
-    * */
-    public static String bytesToHex(byte[] in) {
-        final StringBuilder builder = new StringBuilder();
-        for (byte b : in) {
-            builder.append(String.format("%02x", b));
+    private void updateUI(boolean isLoading) {
+        if (isLoading) {
+            progressView.setVisibility(View.VISIBLE);
+            progressView.startAnimation();
+            register.setEnabled(false);
+            firstName.setEnabled(false);
+            lastName.setEnabled(false);
+            password.setEnabled(false);
+            confirmPassword.setEnabled(false);
+        } else {
+            progressView.stopAnimation();
+            progressView.setVisibility(View.INVISIBLE);
+            register.setEnabled(true);
+            firstName.setEnabled(true);
+            lastName.setEnabled(true);
+            password.setEnabled(true);
+            confirmPassword.setEnabled(true);
         }
-        return builder.toString();
-    }
-
-    /*
-    * Credits to this StackOverflow question http://stackoverflow.com/a/140861/2058134
-    * */
-    public static byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i + 1), 16));
-        }
-        return data;
     }
 }
