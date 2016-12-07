@@ -22,7 +22,7 @@ import java.io.IOException;
 
 
 import com.gauravbhor.securechat.R;
-import com.gauravbhor.securechat.activities.FriendListActivity;
+import com.gauravbhor.securechat.activities.TabbedActivity;
 import com.gauravbhor.securechat.activities.SuperActivity;
 import com.gauravbhor.securechat.pojos.User;
 import com.gauravbhor.securechat.rest.ChatServer;
@@ -30,6 +30,7 @@ import com.gauravbhor.securechat.utils.PreferenceHelper;
 import com.gauravbhor.securechat.utils.PreferenceKeys;
 import com.gauravbhor.securechat.utils.RetroBuilder;
 import com.gauravbhor.securechat.utils.StaticMembers;
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import com.google.gson.Gson;
 
 import okhttp3.ResponseBody;
@@ -42,12 +43,14 @@ public class VerificationFragment extends Fragment {
 
     private EditText code;
     private Button verifyButton;
+    private CircularProgressView progressView;
 
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_verify, container, false);
 
         final String userId = getArguments().getString("user_id");
 
+        progressView = (CircularProgressView) rootView.findViewById(R.id.progress_view);
         code = (EditText) rootView.findViewById(R.id.edittext_verification_code);
         verifyButton = (Button) rootView.findViewById(R.id.button_verify);
         verifyButton.setOnClickListener(new View.OnClickListener() {
@@ -62,10 +65,14 @@ public class VerificationFragment extends Fragment {
                         json.put("code", verificationCode);
                         json.put("user_id", userId);
                         System.out.println(code + "::" + userId);
+
+                        updateUI(true);
+
                         RetroBuilder.buildOn(ChatServer.class).verify(json).enqueue(new Callback<ResponseBody>() {
 
                             @Override
                             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                                updateUI(false);
                                 try {
                                     if (response.isSuccessful()) {
                                         JSONObject resp = new JSONObject(response.body().string());
@@ -89,7 +96,7 @@ public class VerificationFragment extends Fragment {
                                             String privateKey = Base64.encodeToString(key.getPrivateKey().toBytes(), StaticMembers.BASE64_SAFE_URL_FLAGS);
                                             PreferenceHelper.save(PreferenceKeys.PRIVATE_KEY, privateKey);
                                             PreferenceHelper.save(PreferenceKeys.PUBLIC_KEY, publicKey);
-                                            Intent intent = new Intent(getActivity(), FriendListActivity.class);
+                                            Intent intent = new Intent(getActivity(), TabbedActivity.class);
                                             startActivity(intent);
                                         }
                                     } else {
@@ -104,6 +111,7 @@ public class VerificationFragment extends Fragment {
                             public void onFailure(Call<ResponseBody> call, Throwable t) {
                                 Toast.makeText(getContext(), "Error: " + t.getMessage() + ". Please try again", Toast.LENGTH_LONG).show();
                                 t.printStackTrace();
+                                updateUI(false);
                             }
                         });
                     } catch (Exception e) {
@@ -111,10 +119,25 @@ public class VerificationFragment extends Fragment {
                     }
                 } else {
                     code.setError("Please enter a valid verfication code.");
+                    updateUI(false);
                 }
             }
         });
 
         return rootView;
+    }
+
+    private void updateUI(boolean isLoading) {
+        if (isLoading) {
+            progressView.setVisibility(View.VISIBLE);
+            progressView.startAnimation();
+            verifyButton.setEnabled(false);
+            code.setEnabled(false);
+        } else {
+            progressView.stopAnimation();
+            progressView.setVisibility(View.INVISIBLE);
+            verifyButton.setEnabled(true);
+            code.setEnabled(true);
+        }
     }
 }

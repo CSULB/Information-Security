@@ -12,4 +12,6 @@
     <string name="scan_key">Scan Public Key</string>
     <string name="show_key">Show Public Key</string>
     <string name="verify">Verify</string>
+    <string name="title_activity_main2">Main2Activity</string>
+    <string name="group_name">Group Name</string>
 </resources>

@@ -5,9 +5,5 @@ xmlns:app="http://schemas.android.com/apk/res-auto">
     android:id="@+id/show_key"
     android:title="@string/show_key"
     app:showAsAction="never" />
-<item
-    android:id="@+id/scan_key"
-    android:title="@string/scan_key"
-    app:showAsAction="never" />
 
 </menu>
