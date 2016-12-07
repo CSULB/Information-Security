@@ -75,12 +75,13 @@ class GroupController extends Controller {
     }
 
     public function getMessages(Request $request, $groupId) {
-        JWTAuth::parseToken()->authenticate();
-
+        // JWTAuth::parseToken()->authenticate();
+        $parameters = $request->all()['nameValuePairs'];
+        // print_r($parameters); exit;
         // Sender should exist and be verified
-		if($request->has('sender_id') && $request->has('timestamp')) {
+		if($parameters['sender_id'] && array_key_exists('id', $parameters)) {
 
-			$sender = User::find($request->input('sender_id'));
+			$sender = User::find($parameters['sender_id']);
 			if(empty($sender) || $sender->is_verified == false) {
 				$errors = ['error' => 'Invalid ID', 'code' => '0'];
 				return response()->json($errors);
@@ -90,9 +91,7 @@ class GroupController extends Controller {
                     $errors = ['error' => 'Invalid ID', 'code' => '1'];
                     return response()->json($errors);
                 } else {
-                    $groupMessages = GroupMessage::where('created_at', '>', $request->input('timestamp'))
-                   ->orderBy('created_at', 'asc')
-                   ->get();
+                    $groupMessages = GroupMessage::where('group_id', $groupId)->where('id', '>', $parameters['id'])->orderBy('created_at', 'asc')->get();
                    return response()->json($groupMessages);
                 }
             }

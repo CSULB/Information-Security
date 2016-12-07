@@ -19,7 +19,7 @@ public class GroupMessageService extends IntentService {
         @Override
         public void run() {
 
-//            RetroBuilder.buildOn(ChatServer.class).getMessages(SuperActivity.user.getId())
+            RetroBuilder.buildOn(ChatServer.class).getGroupMessages(SuperActivity.user.getId())
 
             handler.postDelayed(runnableCode, 3000);
         }
