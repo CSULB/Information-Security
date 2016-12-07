@@ -58,7 +58,7 @@ public class Functions {
         }
     }
 
-    public static JSONObject getEncryptedMessage(String message, Context context, byte[] receiverPublicKey, byte[] selfPrivateKey, boolean yourID) {
+    public static JSONObject getEncryptedMessage(String message, int type, Context context, byte[] receiverPublicKey, byte[] selfPrivateKey, long yourID) {
 
         byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
         byte[] cipher1 = new byte[Sodium.crypto_secretbox_macbytes() + messageBytes.length];
@@ -86,12 +86,13 @@ public class Functions {
 
         try {
             JSONObject mess = new JSONObject();
-            mess.put("type", 1);
+            mess.put("type", type);
             mess.put("nonce1", Base64.encodeToString(nonce1, StaticMembers.BASE64_SAFE_URL_FLAGS));
             mess.put("nonce2", Base64.encodeToString(nonce2, StaticMembers.BASE64_SAFE_URL_FLAGS));
             mess.put("message1", Base64.encodeToString(cipher1, StaticMembers.BASE64_SAFE_URL_FLAGS));
             mess.put("message2", Base64.encodeToString(cipher2, StaticMembers.BASE64_SAFE_URL_FLAGS));
-            mess.put("length", symmetricKey.length);
+            mess.put("length", String.valueOf(symmetricKey.length));
+            System.out.println("length: " + String.valueOf(symmetricKey.length));
 
             JSONObject parent = new JSONObject();
             parent.put("sender_id", yourID);
@@ -102,6 +103,9 @@ public class Functions {
             e.printStackTrace();
             return null;
         }
+    }
 
+    public static JSONObject getEncryptedGroupMessage() {
+        return null;
     }
 }

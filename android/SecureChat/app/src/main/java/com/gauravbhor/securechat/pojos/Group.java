@@ -18,6 +18,7 @@ public class Group extends RealmObject {
     private long admin_id;
     private String name;
     private String members;
+    private String groupKey;
 
     public long getId() {
         return id;
@@ -49,5 +50,13 @@ public class Group extends RealmObject {
 
     public void setAdmin_id(long admin_id) {
         this.admin_id = admin_id;
+    }
+
+    public String getGroupKey() {
+        return groupKey;
+    }
+
+    public void setGroupKey(String groupKey) {
+        this.groupKey = groupKey;
     }
 }

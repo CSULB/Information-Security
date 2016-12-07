@@ -22,9 +22,10 @@ $app->group(['prefix' => 'api/v1'], function($app) {
 
     $app->post('users/{id}', 'UserController@getUser');
     $app->post('users/message/{id}', 'UserController@sendMessage');
-    $app->get('users/message/{id}/{mid}', 'UserController@getMessages');
+    $app->post('users/message/{id}/{mid}', 'UserController@getMessages');
 
     $app->post('groups/create', 'GroupController@createGroup');
+    $app->post('groups/details', 'GroupController@getDetails');
     $app->post('groups/messages/send/{id}', 'GroupController@sendMessage');
     $app->post('groups/messages/{groupId}', 'GroupController@getMessages');
 
