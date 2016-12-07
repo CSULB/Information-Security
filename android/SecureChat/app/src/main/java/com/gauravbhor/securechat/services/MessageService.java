@@ -61,7 +61,7 @@ public class MessageService extends IntentService {
                                     for (int i = 0; i < messages.length(); i++) {
                                         try {
                                             JSONObject singleMessage = messages.getJSONObject(i);
-
+                                            lastestID = singleMessage.getLong("id");
                                             int from = singleMessage.getInt("from");
                                             User user = realm.where(User.class).equalTo("user_id", from).findFirst();
 
@@ -91,8 +91,6 @@ public class MessageService extends IntentService {
 
                                                 if (result2 == 0) {
                                                     String plainText = new String(decryptedMessage, StandardCharsets.UTF_8);
-
-                                                    lastestID = singleMessage.getLong("id");
 
                                                     ChatMessage chatMessage = new ChatMessage();
                                                     chatMessage.setId(lastestID);
@@ -132,7 +130,7 @@ public class MessageService extends IntentService {
                 }
             });
 
-            handler.postDelayed(runnableCode, 4000);
+            handler.postDelayed(runnableCode, 6000);
         }
     };
 
