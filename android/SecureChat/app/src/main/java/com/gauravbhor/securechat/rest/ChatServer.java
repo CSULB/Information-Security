@@ -1,5 +1,6 @@
 package com.gauravbhor.securechat.rest;
 
+import com.gauravbhor.securechat.adapters.GroupMessageAdapter;
 import com.gauravbhor.securechat.pojos.ChatMessage;
 import com.gauravbhor.securechat.pojos.Group;
 import com.gauravbhor.securechat.pojos.User;
@@ -44,4 +45,7 @@ public interface ChatServer {
 
     @POST("groups/details")
     Call<Group> getGroupDetails(@Body JSONObject json);
+
+    @POST("groups/messages/send/{id}")
+    Call<ResponseBody> sendGroupMessage(@Body JSONObject parent, @Path("id") long groupID);
 }

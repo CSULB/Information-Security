@@ -81,7 +81,7 @@ public class GroupListFragment extends Fragment implements AdapterView.OnItemCli
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         Group group = (Group) adapterView.getAdapter().getItem(i);
         Intent intent = new Intent(getContext(), GroupChatActivity.class);
-        intent.putExtra("id", group.getId());
+        intent.putExtra("group_id", group.getId());
         startActivity(intent);
     }
 }

@@ -26,6 +26,7 @@ public class MainActivity extends SuperActivity {
         if (userJson != null) {
             SuperActivity.user = new Gson().fromJson(userJson, User.class);
             startActivity(new Intent(this, TabbedActivity.class));
+            finish();
         } else {
             LoginFragment loginFragment = new LoginFragment();
             loginFragment.setArguments(getIntent().getExtras());
@@ -33,7 +34,7 @@ public class MainActivity extends SuperActivity {
         }
     }
 
-    // THIS IS VERY IMPORTANT. STUPID ANDROID STUDIO DOESN'T LOAD IT AUTOMATICALLY.
+    // THIS IS VERY IMPORTANT. STUPID APP DOESN'T LOAD IT AUTOMATICALLY.
     static {
         try {
             System.loadLibrary("sodiumjni");
