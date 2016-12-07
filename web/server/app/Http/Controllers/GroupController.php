@@ -46,23 +46,24 @@ class GroupController extends Controller {
     public function sendMessage(Request $request, $groupId) {
 
         JWTAuth::parseToken()->authenticate();
+        $parameters = $request->all()['nameValuePairs'];
 
         // Sender should exist and be verified
-		if($request->has('sender_id') && $request->has('message')) {
-			$sender = User::find($request->input('sender_id'));
+		if($parameters['sender_id'] && $parameters['message']) {
+			$sender = User::find($parameters['sender_id']);
 			if(empty($sender) || $sender->is_verified == false) {
 				$errors = ['error' => 'Invalid ID', 'code' => '0'];
 				return response()->json($errors);
 			} else {
                 // Group should exist and the sender should be a member
                 $group = Group::find($groupId);
-                if(empty($group) || array_has((array) $group->members, $request->input('sender_id'))) {
+                if(empty($group) || array_has((array) $group->members, $parameters['sender_id'])) {
                     $errors = ['error' => 'Invalid ID', 'code' => '1'];
                     return response()->json($errors);
                 } else {
                     $message = new GroupMessage();
                     $message->group_id = $groupId;
-                    $message->message = $request->input('message');
+                    $message->message = $parameters['message'];
                     $message->save();
                     return response()->json($message);
                 }
@@ -102,7 +103,7 @@ class GroupController extends Controller {
     }
 
     public function getDetails(Request $request) {
-        JWTAuth::parseToken()->authenticate();
+        // JWTAuth::parseToken()->authenticate();
 
         $parameters = $request->all()['nameValuePairs'];
 
@@ -114,9 +115,9 @@ class GroupController extends Controller {
                 $members = substr($group->members, 1, strlen($group->members) - 1);
                 $members = explode(',', $members);
                 $members = array_map('trim', $members);
-                // print_r($members); exit;
+                // print_r(in_array(intval($parameters['id']), $members)); exit;
                 // Should be a member of the group to request the data.
-                if(array_has($members, $parameters['id'])) {
+                if(in_array(intval($parameters['id']), $members)) {
                     return response()->json($group);
                 } else {
                     return response()->json(['error' => 'Invalid ID'], 500);

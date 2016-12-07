@@ -69,6 +69,7 @@ public class ChatActivity extends SuperActivity {
         listView = (ListView) findViewById(R.id.listview_messages);
         final MessageAdapter adapter = new MessageAdapter(this, 0, result, recieverId, user.getId());
         listView.setAdapter(adapter);
+        listView.setSelection(adapter.getCount() - 1);
 
         receiver = new BroadcastReceiver() {
             @Override

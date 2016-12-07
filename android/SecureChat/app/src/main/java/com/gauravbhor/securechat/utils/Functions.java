@@ -6,6 +6,7 @@ import android.widget.Toast;
 
 import com.gauravbhor.securechat.activities.ChatActivity;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.libsodium.jni.Sodium;
 import org.libsodium.jni.SodiumConstants;
@@ -105,7 +106,23 @@ public class Functions {
         }
     }
 
-    public static JSONObject getEncryptedGroupMessage() {
-        return null;
+    public static JSONObject getEncryptedGroupMessage(String message, Context context, byte[] groupPrivateKey, long id) throws JSONException {
+
+        byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
+        byte[] cipher = new byte[Sodium.crypto_secretbox_macbytes() + messageBytes.length];
+        byte[] nonce = new byte[Sodium.crypto_secretbox_noncebytes()];
+
+        Sodium.randombytes(nonce, nonce.length);
+
+        // Encrypt the message
+        if (Sodium.crypto_secretbox_easy(cipher, messageBytes, messageBytes.length, nonce, groupPrivateKey) != 0) {
+            Toast.makeText(context, "Error sending message. Please try again.", Toast.LENGTH_LONG).show();
+            return null;
+        }
+
+        JSONObject json = new JSONObject();
+        json.put("sender_id", id);
+        json.put("message", Base64.encodeToString(cipher, StaticMembers.BASE64_SAFE_URL_FLAGS));
+        return json;
     }
 }
