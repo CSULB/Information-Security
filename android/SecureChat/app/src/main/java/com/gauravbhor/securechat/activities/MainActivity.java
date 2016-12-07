@@ -10,6 +10,8 @@ import com.gauravbhor.securechat.utils.PreferenceHelper;
 import com.gauravbhor.securechat.utils.PreferenceKeys;
 import com.google.gson.Gson;
 
+import org.libsodium.jni.Sodium;
+
 public class MainActivity extends SuperActivity {
 
     @Override
@@ -18,6 +20,7 @@ public class MainActivity extends SuperActivity {
         setContentView(R.layout.activity_main);
 
         PreferenceHelper.init(getApplicationContext());
+        Sodium.sodium_init();
 
         String userJson = PreferenceHelper.getString(PreferenceKeys.USER);
         if (userJson != null) {

@@ -3,6 +3,7 @@ package com.gauravbhor.securechat.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.SparseBooleanArray;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -12,13 +13,19 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.gauravbhor.securechat.R;
+import com.gauravbhor.securechat.pojos.ChatMessage;
 import com.gauravbhor.securechat.pojos.Group;
 import com.gauravbhor.securechat.pojos.User;
 import com.gauravbhor.securechat.rest.ChatServer;
+import com.gauravbhor.securechat.utils.Functions;
+import com.gauravbhor.securechat.utils.PreferenceHelper;
+import com.gauravbhor.securechat.utils.PreferenceKeys;
 import com.gauravbhor.securechat.utils.RetroBuilder;
 import com.gauravbhor.securechat.utils.StaticMembers;
 
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.libsodium.jni.Sodium;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,7 +78,7 @@ public class CreateGroupActivity extends SuperActivity {
                     Toast.makeText(getApplicationContext(), "Please enter a group name.", Toast.LENGTH_SHORT).show();
                 } else {
                     SparseBooleanArray array = listView.getCheckedItemPositions();
-                    ArrayList<String> members = new ArrayList<String>();
+                    ArrayList<String> members = new ArrayList<>();
                     for (int i = 0; i < result.size(); i++) {
                         if (array.get(i)) {
                             User user = result.get(i);
@@ -116,6 +123,41 @@ public class CreateGroupActivity extends SuperActivity {
                             finish();
                         }
                     });
+
+
+                    byte[] groupKey = new byte[Sodium.crypto_secretbox_noncebytes()];
+                    Sodium.randombytes(groupKey, groupKey.length);
+
+                    String gKey = Base64.encodeToString(groupKey, StaticMembers.BASE64_SAFE_URL_FLAGS);
+
+                    JSONObject json = new JSONObject();
+                    try {
+                        json.put("key", gKey);
+                        json.put("group_id", group.getId());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    byte[] selfPrivateKey = Base64.decode(PreferenceHelper.getString(PreferenceKeys.PRIVATE_KEY), StaticMembers.BASE64_SAFE_URL_FLAGS);
+
+                    String[] members = group.getMembers().replace("[", "").replace("]", "").split(", ");
+                    final Integer[] memberIDs = new Integer[members.length];
+                    for (int i = 0; i < members.length; i++) {
+                        memberIDs[i] = Integer.parseInt(members[i]);
+                    }
+
+                    realm = Realm.getDefaultInstance();
+                    RealmQuery<User> query = realm.where(User.class).in("user_id", memberIDs);
+                    RealmResults<User> result = query.findAll();
+
+                    for (int i = 0; i < result.size(); i++) {
+                        User u = result.get(i);
+                        byte[] userPublicKey = Base64.decode(u.getPublicKey(), StaticMembers.BASE64_SAFE_URL_FLAGS);
+
+                        // Store each user's message in an array to e sent separately.
+                        JSONObject finalMessages = Functions.getEncryptedMessage(json.toString(), 2, getApplicationContext(), userPublicKey, selfPrivateKey, user.getId());
+                        sendMessage(finalMessages, u.getId());
+                    }
                 } else {
                     try {
                         JSONObject json = new JSONObject(response.errorBody().string());
@@ -153,7 +195,25 @@ public class CreateGroupActivity extends SuperActivity {
                 finish();
             }
         });
+    }
 
+    private void sendMessage(JSONObject finalMessages, long receiverID) {
+        RetroBuilder.buildOn(ChatServer.class).sendMessage(finalMessages, receiverID).enqueue(new Callback<ChatMessage>() {
+
+            @Override
+            public void onResponse(Call<ChatMessage> call, final Response<ChatMessage> response) {
+                if (response.isSuccessful()) {
+                    // Messages sent. Awesome.
+                } else {
+                    Toast.makeText(getApplicationContext(), "Error sending message. Please try again.", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ChatMessage> call, Throwable t) {
+                Toast.makeText(getApplicationContext(), "Error sending message. Please try again.", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     @Override

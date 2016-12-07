@@ -74,7 +74,7 @@ class GroupController extends Controller {
     }
 
     public function getMessages(Request $request, $groupId) {
-        // JWTAuth::parseToken()->authenticate();
+        JWTAuth::parseToken()->authenticate();
 
         // Sender should exist and be verified
 		if($request->has('sender_id') && $request->has('timestamp')) {
@@ -98,6 +98,30 @@ class GroupController extends Controller {
         } else {
             $errors = ['error' => 'Missing Parameters', 'code' => '0'];
             return response()->json($errors);
+        }
+    }
+
+    public function getDetails(Request $request) {
+        JWTAuth::parseToken()->authenticate();
+
+        $parameters = $request->all()['nameValuePairs'];
+
+        if(array_has($parameters, 'id') && array_has($parameters, 'group_id')) {
+            $group = Group::find($parameters['group_id']);
+            if(empty($group)) {
+                return response()->json(['error' => 'Invalid ID'], 500);
+            } else {
+                $members = substr($group->members, 1, strlen($group->members) - 1);
+                $members = explode(',', $members);
+                $members = array_map('trim', $members);
+                // print_r($members); exit;
+                // Should be a member of the group to request the data.
+                if(array_has($members, $parameters['id'])) {
+                    return response()->json($group);
+                } else {
+                    return response()->json(['error' => 'Invalid ID'], 500);
+                }
+            }
         }
     }
 }
