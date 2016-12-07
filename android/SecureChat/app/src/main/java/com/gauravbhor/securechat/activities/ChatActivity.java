@@ -25,6 +25,7 @@ import com.gauravbhor.securechat.utils.StaticMembers;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.libsodium.jni.Sodium;
+import org.libsodium.jni.SodiumConstants;
 
 import java.nio.charset.StandardCharsets;
 
@@ -89,21 +90,40 @@ public class ChatActivity extends SuperActivity {
                 String message = etMessage.getText().toString();
                 if (message.trim().length() > 0) {
                     message = message.trim();
+
                     byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
+                    byte[] cipher1 = new byte[Sodium.crypto_secretbox_macbytes() + messageBytes.length];
+                    byte[] nonce1 = new byte[Sodium.crypto_secretbox_noncebytes()];
+                    byte[] symmetricKey = new byte[SodiumConstants.SECRETKEY_BYTES];
 
-                    byte[] nonce = new byte[Sodium.crypto_box_noncebytes()];
-                    Sodium.randombytes(nonce, nonce.length);
+                    Sodium.randombytes(nonce1, nonce1.length);
+                    Sodium.randombytes(symmetricKey, symmetricKey.length);
 
-                    byte[] cipher = new byte[Sodium.crypto_secretbox_macbytes() + messageBytes.length];
-                    Sodium.crypto_box_easy(cipher, messageBytes, messageBytes.length, nonce, receiverPublicKey, selfPrivateKey);
+                    // Encrypt the message
+                    if (Sodium.crypto_secretbox_easy(cipher1, messageBytes, messageBytes.length, nonce1, symmetricKey) != 0) {
+                        Toast.makeText(ChatActivity.this, "Error sending message. Please try again.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    byte[] cipher2 = new byte[Sodium.crypto_box_macbytes() + symmetricKey.length];
+                    byte[] nonce2 = new byte[Sodium.crypto_box_noncebytes()];
+                    Sodium.randombytes(nonce2, nonce2.length);
+
+                    // Encrypt the key
+                    if (Sodium.crypto_box_easy(cipher2, symmetricKey, symmetricKey.length, nonce2, receiverPublicKey, selfPrivateKey) != 0) {
+                        Toast.makeText(ChatActivity.this, "Error sending message. Please try again.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
 
                     JSONObject parent = new JSONObject();
                     try {
                         JSONObject mess = new JSONObject();
                         mess.put("type", 1);
-                        mess.put("nonce", Base64.encodeToString(nonce, StaticMembers.BASE64_SAFE_URL_FLAGS));
-                        mess.put("message", Base64.encodeToString(cipher, StaticMembers.BASE64_SAFE_URL_FLAGS));
-                        mess.put("length", message.length());
+                        mess.put("nonce1", Base64.encodeToString(nonce1, StaticMembers.BASE64_SAFE_URL_FLAGS));
+                        mess.put("nonce2", Base64.encodeToString(nonce2, StaticMembers.BASE64_SAFE_URL_FLAGS));
+                        mess.put("message1", Base64.encodeToString(cipher1, StaticMembers.BASE64_SAFE_URL_FLAGS));
+                        mess.put("message2", Base64.encodeToString(cipher2, StaticMembers.BASE64_SAFE_URL_FLAGS));
+                        mess.put("length", symmetricKey.length);
 
                         parent.put("sender_id", user.getId());
                         parent.put("message", mess.toString());

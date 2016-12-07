@@ -62,34 +62,51 @@ public class MessageService extends IntentService {
                                         try {
                                             JSONObject singleMessage = messages.getJSONObject(i);
 
-                                            lastestID = singleMessage.getLong("id");
                                             int from = singleMessage.getInt("from");
                                             User user = realm.where(User.class).equalTo("user_id", from).findFirst();
 
-                                            JSONObject mess = new JSONObject(singleMessage.getString("message"));
+                                            JSONObject innerMessage = new JSONObject(singleMessage.getString("message"));
 
-                                            byte[] cipher = Base64.decode(mess.getString("message"), StaticMembers.BASE64_SAFE_URL_FLAGS);
-                                            byte[] nonce = Base64.decode(mess.getString("nonce"), StaticMembers.BASE64_SAFE_URL_FLAGS);
-                                            int type = mess.getInt("type");
-                                            int length = mess.getInt("length");
-                                            byte[] decodedMessage = new byte[length];
+                                            // Get all the parameters
+                                            byte[] encryptedKey = Base64.decode(innerMessage.getString("message2"), StaticMembers.BASE64_SAFE_URL_FLAGS);
+                                            byte[] encryptedMessage = Base64.decode(innerMessage.getString("message1"), StaticMembers.BASE64_SAFE_URL_FLAGS);
+                                            byte[] nonce1 = Base64.decode(innerMessage.getString("nonce1"), StaticMembers.BASE64_SAFE_URL_FLAGS);
+                                            byte[] nonce2 = Base64.decode(innerMessage.getString("nonce2"), StaticMembers.BASE64_SAFE_URL_FLAGS);
 
-                                            int result = Sodium.crypto_box_open_easy(decodedMessage, cipher, cipher.length, nonce, Base64.decode(user.getPublicKey(), StaticMembers.BASE64_SAFE_URL_FLAGS), privateKey);
+                                            int type = innerMessage.getInt("type");
+                                            int symmetricKeyLength = innerMessage.getInt("length");
+
+                                            byte[] decodedKey = new byte[symmetricKeyLength];
+
+                                            // Decrypt key
+                                            int result = Sodium.crypto_box_open_easy(decodedKey, encryptedKey, encryptedKey.length, nonce2, Base64.decode(user.getPublicKey(), StaticMembers.BASE64_SAFE_URL_FLAGS), privateKey);
 
                                             if (result == 0) {
-                                                String plainText = new String(decodedMessage, StandardCharsets.UTF_8);
-                                                System.out.println("PT: " + plainText);
+                                                // Decryption successful
 
-                                                ChatMessage chatMessage = new ChatMessage();
-                                                chatMessage.setId(lastestID);
-                                                chatMessage.setMessage(plainText);
-                                                chatMessage.setSender(singleMessage.getLong("from"));
-                                                chatMessage.setReceiver(myUserId);
-                                                chatMessage.setType(type);
-                                                realm.copyToRealm(chatMessage);
-                                                sendBroadcast(new Intent(StaticMembers.UPDATE_MESSAGES));
+                                                byte[] decryptedMessage = new byte[Sodium.crypto_secretbox_macbytes() + encryptedMessage.length];
+
+                                                // Decode actual message
+                                                int result2 = Sodium.crypto_secretbox_open_easy(decryptedMessage, encryptedMessage, encryptedMessage.length, nonce1, decodedKey);
+
+                                                if (result2 == 0) {
+                                                    String plainText = new String(decryptedMessage, StandardCharsets.UTF_8);
+
+                                                    lastestID = singleMessage.getLong("id");
+
+                                                    ChatMessage chatMessage = new ChatMessage();
+                                                    chatMessage.setId(lastestID);
+                                                    chatMessage.setMessage(plainText);
+                                                    chatMessage.setSender(singleMessage.getLong("from"));
+                                                    chatMessage.setReceiver(myUserId);
+                                                    chatMessage.setType(type);
+                                                    realm.copyToRealmOrUpdate(chatMessage);
+                                                    sendBroadcast(new Intent(StaticMembers.UPDATE_MESSAGES));
+                                                } else {
+                                                    Log.e("SecureChat", "Couldn't decrypt message");
+                                                }
                                             } else {
-                                                Log.e("SecureChat", "Couldn't decrypt message");
+                                                Log.e("SecureChat", "Couldn't decrypt key");
                                             }
                                         } catch (Exception e) {
                                             e.printStackTrace();

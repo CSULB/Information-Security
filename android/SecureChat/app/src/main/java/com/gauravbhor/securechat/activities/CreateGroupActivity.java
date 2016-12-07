@@ -153,7 +153,6 @@ public class CreateGroupActivity extends SuperActivity {
                 finish();
             }
         });
-
     }
 
     @Override
