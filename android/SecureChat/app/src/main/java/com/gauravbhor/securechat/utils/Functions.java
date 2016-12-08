@@ -120,9 +120,14 @@ public class Functions {
             return null;
         }
 
+
+        JSONObject innerJSON = new JSONObject();
+        innerJSON.put("nonce", Base64.encodeToString(nonce, StaticMembers.BASE64_SAFE_URL_FLAGS));
+        innerJSON.put("message", Base64.encodeToString(cipher, StaticMembers.BASE64_SAFE_URL_FLAGS));
+
         JSONObject json = new JSONObject();
         json.put("sender_id", id);
-        json.put("message", Base64.encodeToString(cipher, StaticMembers.BASE64_SAFE_URL_FLAGS));
+        json.put("message", innerJSON.toString());
         return json;
     }
 }

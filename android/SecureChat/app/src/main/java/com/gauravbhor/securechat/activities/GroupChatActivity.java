@@ -27,6 +27,8 @@ import com.gauravbhor.securechat.utils.StaticMembers;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+
 import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
@@ -93,7 +95,7 @@ public class GroupChatActivity extends AppCompatActivity {
             public void onClick(View view) {
                 String message = etMessage.getText().toString();
                 if (message.trim().length() > 0) {
-                    message = message.trim();
+                    message = user.getFirst_name() + ": " + message.trim();
 
                     JSONObject parent = null;
                     try {
@@ -110,6 +112,12 @@ public class GroupChatActivity extends AppCompatActivity {
                         @Override
                         public void onResponse(Call<ResponseBody> call, final Response<ResponseBody> response) {
                             if (response.isSuccessful()) {
+                                try {
+                                    System.out.println(response.body().string());
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                etMessage.setText("");
 //                              ######  Process group message in service.   ######
 //                                realm.executeTransaction(new Realm.Transaction() {
 //

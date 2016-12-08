@@ -49,6 +49,6 @@ public interface ChatServer {
     @POST("groups/messages/send/{id}")
     Call<ResponseBody> sendGroupMessage(@Body JSONObject parent, @Path("id") long groupID);
 
-    @POST("groups/message/{id}")
-    Call<ResponseBody> getGroupMessages(@Path("id") long id);
+    @POST("groups/message")
+    Call<ResponseBody> getGroupMessages(@Body JSONObject parent);
 }

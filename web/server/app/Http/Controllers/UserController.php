@@ -203,24 +203,24 @@ class UserController extends Controller {
 	// Contact sms server
 	public function sendSMS($code, $phone) {
 		return true;
-		// $formParams = [
-		// 	'version' => '2.0',
-		// 	'userid' => 'gauravbhor',
-		// 	'vasid' => '10188',
-		// 	'password' => 'Gaurav123',
-		// 	'from' => '27126',
-		// 	'to' => substr($phone, 2),
-		// 	'text' => 'Use this code for verification in SecureChat '.$code
-		// ];
-		//
-		// $client = new Client();
-		// $request = $client->request('POST', 'http://smsapi.wire2air.com/smsadmin/submitsm.aspx', ['form_params' => $formParams]);
-		//
-		// if($request->getStatusCode() != 200) {
-		// 	return false;
-		// } else {
-		// 	return true;
-		// }
+		$formParams = [
+			'version' => '2.0',
+			'userid' => 'gauravbhor',
+			'vasid' => '10188',
+			'password' => 'Gaurav123',
+			'from' => '27126',
+			'to' => substr($phone, 2),
+			'text' => 'Use this code for verification in SecureChat '.$code
+		];
+
+		$client = new Client();
+		$request = $client->request('POST', 'http://smsapi.wire2air.com/smsadmin/submitsm.aspx', ['form_params' => $formParams]);
+
+		if($request->getStatusCode() != 200) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 	/*
@@ -255,7 +255,7 @@ class UserController extends Controller {
 
 	// Get user data for friend's list
 	public function getUser(Request $request, $id) {
-		
+
 		JWTAuth::parseToken()->authenticate();
 		$parameters = $request->all();
 		// Sender should exist and be verified

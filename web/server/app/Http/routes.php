@@ -27,7 +27,9 @@ $app->group(['prefix' => 'api/v1'], function($app) {
     $app->post('groups/create', 'GroupController@createGroup');
     $app->post('groups/details', 'GroupController@getDetails');
     $app->post('groups/messages/send/{id}', 'GroupController@sendMessage');
-    $app->post('groups/messages/{groupId}', 'GroupController@getMessages');
+
+    // Get all your messages
+    $app->post('groups/message', 'GroupController@getMessages');
 
     $app->post('keys/dh','KeyController@diffie');
 });
