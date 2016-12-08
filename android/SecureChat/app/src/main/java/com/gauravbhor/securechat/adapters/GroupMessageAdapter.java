@@ -42,7 +42,6 @@ public class GroupMessageAdapter extends ArrayAdapter<GroupChatMessage> {
             h = new Holder();
             h.relativeLayoutGroupMessage = (RelativeLayout) v.findViewById(R.id.relativeLayoutGroupMessage);
             h.message = (TextView) v.findViewById(R.id.textview_message);
-            h.name = (TextView) v.findViewById(R.id.textview_name);
             v.setTag(h);
         } else {
             h = (Holder) v.getTag();
@@ -51,28 +50,11 @@ public class GroupMessageAdapter extends ArrayAdapter<GroupChatMessage> {
         GroupChatMessage chatMessage = getItem(position);
         h.message.setText(chatMessage.getMessage());
 
-        if (chatMessage.getSenderID() != myID) {
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(h.relativeLayoutGroupMessage.getLayoutParams());
-            params.addRule(Gravity.LEFT);
-            h.relativeLayoutGroupMessage.setLayoutParams(params);
-            Drawable d = h.relativeLayoutGroupMessage.getBackground();
-            d.setColorFilter(Color.LTGRAY, PorterDuff.Mode.SRC);
-            h.name.setText(chatMessage.getSenderName());
-        } else {
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(h.relativeLayoutGroupMessage.getLayoutParams());
-            params.addRule(Gravity.RIGHT);
-            h.relativeLayoutGroupMessage.setLayoutParams(params);
-            Drawable d = h.relativeLayoutGroupMessage.getBackground();
-            d.setColorFilter(Color.parseColor("#ff33b5e5"), PorterDuff.Mode.SRC);
-            h.name.setText("You");
-        }
-
         return v;
     }
 
     class Holder {
         RelativeLayout relativeLayoutGroupMessage;
-        TextView name;
         TextView message;
     }
 }

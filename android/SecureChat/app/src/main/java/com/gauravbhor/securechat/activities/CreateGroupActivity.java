@@ -114,7 +114,12 @@ public class CreateGroupActivity extends SuperActivity {
             @Override
             public void onResponse(Call<Group> call, Response<Group> response) {
                 if (response.isSuccessful()) {
+
+                    byte[] groupKey = new byte[Sodium.crypto_secretbox_noncebytes()];
+                    Sodium.randombytes(groupKey, groupKey.length);
+
                     group = response.body();
+                    group.setGroupKey(Base64.encodeToString(groupKey, StaticMembers.BASE64_SAFE_URL_FLAGS));
                     realm.executeTransaction(new Realm.Transaction() {
                         @Override
                         public void execute(Realm realm) {
@@ -124,9 +129,6 @@ public class CreateGroupActivity extends SuperActivity {
                         }
                     });
 
-
-                    byte[] groupKey = new byte[Sodium.crypto_secretbox_noncebytes()];
-                    Sodium.randombytes(groupKey, groupKey.length);
 
                     String gKey = Base64.encodeToString(groupKey, StaticMembers.BASE64_SAFE_URL_FLAGS);
 

@@ -17,6 +17,7 @@ class CreateGroupMessagesTable extends Migration
             $table->increments('id');
             $table->string('message');
             $table->bigInteger('group_id');
+            $table->bigInteger('sender_id');
             $table->timestamps();
         });
     }

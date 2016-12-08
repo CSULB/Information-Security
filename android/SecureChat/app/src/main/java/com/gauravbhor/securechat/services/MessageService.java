@@ -39,7 +39,8 @@ public class MessageService extends IntentService {
 
     private static long myUserId;
     private static long lastestID = 0;
-    byte[] privateKey = Base64.decode(PreferenceHelper.getString(PreferenceKeys.PRIVATE_KEY), StaticMembers.BASE64_SAFE_URL_FLAGS);
+    private byte[] privateKey = Base64.decode(PreferenceHelper.getString(PreferenceKeys.PRIVATE_KEY), StaticMembers.BASE64_SAFE_URL_FLAGS);
+    private Realm realm = Realm.getDefaultInstance();
 
     private Handler handler = new Handler();
     private Runnable runnableCode = new Runnable() {
@@ -53,7 +54,7 @@ public class MessageService extends IntentService {
                 @Override
                 public void onResponse(Call<ResponseBody> call, final Response<ResponseBody> response) {
                     if (response.isSuccessful()) {
-                        Realm realm = Realm.getDefaultInstance();
+
                         realm.executeTransaction(new Realm.Transaction() {
 
                             @Override
@@ -67,9 +68,9 @@ public class MessageService extends IntentService {
                                             int type = new JSONObject(singleMessage.getString("message")).getInt("type");
 
                                             if (type == 1) {
-                                                decryptAndSaveMessage(singleMessage, realm);
+                                                decryptAndSaveMessage(singleMessage);
                                             } else if (type == 2) {
-                                                getGroupDetails(singleMessage, realm);
+                                                getGroupDetails(singleMessage);
                                             }
                                         } catch (Exception e) {
                                             e.printStackTrace();
@@ -99,7 +100,7 @@ public class MessageService extends IntentService {
         }
     };
 
-    private void getGroupDetails(JSONObject singleMessage, final Realm realm) throws JSONException {
+    private void getGroupDetails(JSONObject singleMessage) throws JSONException {
         System.out.println("getGroupDetails");
         JSONObject innerMessage = new JSONObject(singleMessage.getString("message"));
         int from = singleMessage.getInt("from");
@@ -168,7 +169,7 @@ public class MessageService extends IntentService {
         }
     }
 
-    private void decryptAndSaveMessage(JSONObject singleMessage, Realm realm) throws JSONException {
+    private void decryptAndSaveMessage(JSONObject singleMessage) throws JSONException {
         JSONObject innerMessage = new JSONObject(singleMessage.getString("message"));
         int from = singleMessage.getInt("from");
         lastestID = singleMessage.getLong("id");
@@ -189,7 +190,6 @@ public class MessageService extends IntentService {
 
         if (result == 0) {
             // Decryption successful
-
             byte[] decryptedMessage = new byte[Sodium.crypto_secretbox_macbytes() + encryptedMessage.length];
 
             // Decode actual message
